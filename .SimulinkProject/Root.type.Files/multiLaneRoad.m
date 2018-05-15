@@ -1,4 +1,4 @@
-function [ep, facing, inPoint, lanes, pieces] = multiLaneRoad(drScn, inPoint, ep, facing, pieces, curLanes, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, angle)
+function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, angle)
     
     %MULTILANEROAD 
     %   Set up road piece with n-lanes based on the lanes parameter. If
@@ -30,7 +30,7 @@ function [ep, facing, inPoint, lanes, pieces] = multiLaneRoad(drScn, inPoint, ep
     % Transition the lane width from the previous piece to the current one
     % creating a new middle piece in the shape of a trapezoid.
     % Checks to see if this isn't the first piece placed w "curLanes ~= 0"
-    if curLanes ~= 0
+    if pieces(length(pieces)).lanes ~= 0
         if roadWidth > pieces(size(pieces,1)).width
             [ep, inPoint, facing, pieces] = laneIncrease(drScn, inPoint, ep, facing, roadWidth, pieces, dirVec, lanes, egoLane, bidirectional, midTurnLane, speedLimit, roadSlickness);
         elseif roadWidth < pieces(size(pieces,1)).width
