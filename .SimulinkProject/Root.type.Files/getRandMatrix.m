@@ -43,7 +43,7 @@ function [roadAssertionMatrix, actorAssertionMatrix] = getRandMatrix(sizeRoad, s
         
         midLane = randi(2) - 1;
         
-        speedLimit = randi(16) * 5;
+        speedLimit = randi(16)  * 5;
         
         roadSlickness = randi(100) / 200;
         
