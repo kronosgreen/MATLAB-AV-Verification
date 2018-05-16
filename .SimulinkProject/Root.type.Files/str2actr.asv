@@ -92,7 +92,7 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                     % cut-off
                     case 2
                         %{ 
-                        for a=posIndex:length(pieces)
+                    for a=posIndex:length(pieces)
                             if pieces(a).type ~= 0
                                 %find available lane
                                 availableLane = -1;
@@ -116,15 +116,6 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                                     end
                                 end
                             end
-                        end
-                        %}
-                        for c=1:4
-                            nextPoint = pieces(2).drivingPaths(1,(3*c - 2):3*c);
-                            newPath = vertcat(newPath, nextPoint);
-                        end
-                        for c=1:4
-                            nextPoint = pieces(3).drivingPaths(2,(3*c - 2):3*c);
-                            newPath = vertcat(newPath, nextPoint);
                         end
                 end
                 
