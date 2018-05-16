@@ -17,13 +17,15 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     
     % Runs simulations in parallel by distributing each iteration to
     % pool of workers, uses iterator as rng seed
-    parfor i=1:numSimulations
-        [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, i);
+   % parfor i=1:numSimulations
+        % [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, i);
+        rMatrix = [];
+        aMatrix = [];
         % set_param('AV_Verification_System/Scenario', 'Scene_Description',
         % rMatrix);
         % sim('AV_Verification_System');
         str2scen(rMatrix, aMatrix);
-    end
+    %end
 
     result = true;
    
