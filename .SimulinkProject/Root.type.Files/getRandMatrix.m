@@ -66,9 +66,9 @@ function [roadAssertionMatrix, actorAssertionMatrix] = getRandMatrix(sizeRoad, s
         
         actorType = randi(length(actors));
         
-        pathType = randi(length(paths));
-        
         carType = randi(length(cars));
+        
+        pathType = randi(length(paths));
         
         movSpeed = randi(20) * 5;
         
@@ -76,7 +76,7 @@ function [roadAssertionMatrix, actorAssertionMatrix] = getRandMatrix(sizeRoad, s
         
         startLoc = randi(100) / 100;
         
-        newActorAssertion = [actorType pathType carType movSpeed dimensions startLoc];
+        newActorAssertion = [actorType carType pathType movSpeed dimensions startLoc];
         
         actorAssertionMatrix(i,:) = newActorAssertion;
         

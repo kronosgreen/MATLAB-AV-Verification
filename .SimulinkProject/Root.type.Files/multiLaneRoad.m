@@ -37,7 +37,30 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
             [ep, inPoint, facing, pieces] = laneDecrease(drScn, inPoint, ep, facing, roadWidth, pieces, dirVec, lanes, egoLane, bidirectional, midTurnLane, speedLimit, roadSlickness);
         end
     end
-
+    
+    
+    % Set up Clothoid Curve based on given curvature
+    
+    % End Curvature
+    k_c = angle;
+    
+    % End circular arc (Radius) - 1 / curvature
+    R_c = 1 / angle;
+    
+    % Arc length or length of road
+    s_c = length;
+    
+    % a variable
+    a = sqrt(2 * R_c * s_c);
+    
+    % theta
+    theta = (s_c/a)^2;
+    
+    taylor(int(theta, s_c, 0, a*s_c))
+    %taylor(fresnelc(s_c/a))
+    %taylor(fresnels(s_c/a))
+    
+    
     %secondPoint = (inPoint + length*dirVec/2) * rotz(angle/4);
     %thirdPoint = (inPoint + length*dirVec) * rotz(angle/2);
     newPoint = inPoint + length/2 * dirVec;

@@ -13,17 +13,17 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     delete('matrixFile.txt');
     
     %Load Simulation Simulink Model
-    load_system('AV_Verification_System');
+    %load_system('AV_Verification_System');
     
     % Runs simulations in parallel by distributing each iteration to
     % pool of workers, uses iterator as rng seed
-    parfor i=1:numSimulations
-        [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, i);
+    %parfor i=1:numSimulations
+        [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, 2);
         % set_param('AV_Verification_System/Main_Program',
         % 'Scene_Description');
         % sim('AV_Verification_System');
         str2scen(rMatrix, aMatrix);
-    end
+    %end
 
     result = true;
    

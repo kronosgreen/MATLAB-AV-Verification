@@ -47,6 +47,8 @@ function [available] = checkAvailability(pieces, nextPiece, inPoint, facing)
             
         case 2
             
+            
+            
         case 3
             
         case 4
