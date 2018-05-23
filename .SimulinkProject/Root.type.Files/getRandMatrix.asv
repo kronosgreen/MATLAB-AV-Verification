@@ -48,7 +48,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         roadSlickness = randi(100) / 200;
         
-        angle = randi(100)/1500 - 0.0333;
+        angle = 0.06;
         
         newRoad = [roadPiece roadLength lanes egoLane bidirectional midLane speedLimit roadSlickness angle];
         
