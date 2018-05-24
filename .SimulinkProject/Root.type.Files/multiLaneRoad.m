@@ -1,4 +1,4 @@
-function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, angle)
+function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
     
     %MULTILANEROAD 
     %   Set up road piece with n-lanes based on the lanes parameter. If
@@ -10,7 +10,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
     % Set up direction the road starts off going in by taking the 
     % facing parameter in radians and creating a vector
     dirVec = [cos(facing) sin(facing) 0];
-    
+    forwardVec = [cos(pi/2) sin(pi/2) 0];
     
     % Set up the width of the road based on whether it is 
     % bidirectional and whether it has a turn lane, is passed 
@@ -25,9 +25,6 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
     else 
         roadWidth = lanes * LANE_WIDTH;
     end
-    
-    % Temp roadpoints
-    roadPoints = [0 0 0];
 
     
     % Transition the lane width from the previous piece to the current one
@@ -41,7 +38,13 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         end
     end
     
-    if angle ~= 0
+    if curvature ~= 0
+        
+        % Create Curved Multilane Road
+        
+        % Create empty matrix for lane paths
+        rPaths = zeros(lanes, 18);
+        
         %
         % Set up Clothoid Curve based on given curvature
         %
@@ -49,7 +52,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         % First Point
 
         % End Curvature
-        k_c = abs(angle) / 3;
+        k_c = abs(curvature) / 3;
 
         % End circular arc (Radius) - 1 / curvature
         R_c = 1 / k_c;
@@ -62,16 +65,33 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         a = sqrt(2 * R_c * s_c);
 
         % theta - radians by which the line turned
-        theta = (s_c/a)^2
+        theta = (s_c/a)^2;
 
-        % set up mid-point at half the road length
-        x1 = a * fresnels(s_c/a)
-        y1 = a * fresnelc(s_c/a)
+        % set up first point of the curve at a third of the road length
+        x1 = a * fresnels(s_c/a);
+        y1 = a * fresnelc(s_c/a);
+        
+        % set up lane paths up to this point
+        if bidirectional
+            for i=1:lanes
+                startPoint = [cos(0)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(0)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                newPath = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
+                rPaths(i,1:9) = newPath;
+            end
+        else
+            for i=1:lanes
+                startPoint = [cos(0)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(0)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+                firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+                newPath = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
+                rPaths(i,1:9) = newPath;
+            end
+        end
 
         % Second Point
 
         % End Curvature
-        k_c = 2 * abs(angle) / 3;
+        k_c = 2 * abs(curvature) / 3;
 
         % End circular arc (Radius) - 1 / curvature
         R_c = 1 / k_c;
@@ -84,16 +104,27 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         a = sqrt(2 * R_c * s_c);
 
         % theta - radians by which the line turned
-        theta = (s_c/a)^2
+        theta = (s_c/a)^2;
 
         % set up mid-point at half the road length
-        x2 = a * fresnels(s_c/a)
-        y2 = a * fresnelc(s_c/a)
+        x2 = a * fresnels(s_c/a);
+        y2 = a * fresnelc(s_c/a);
+        
+        % add second curve point to lane paths
+        if bidirectional
+            for i=1:lanes
+                rPaths(i,10:12) = 2 * forwardVec + [x2 y2 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+            end
+        else
+            for i=1:lanes
+                rPaths(i,10:12) = 2 * forwardVec + [x2 y2 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+            end
+        end
 
         %Third Point
 
         % End Curvature
-        k_c = abs(angle);
+        k_c = abs(curvature);
 
         % End circular arc (Radius) - 1 / curvature
         R_c = 1 / k_c;
@@ -106,98 +137,102 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         a = sqrt(2 * R_c * s_c);
 
         % theta - radians by which the line turned
-        theta = (s_c/a)^2
+        theta = (s_c/a)^2;
 
         % set up final point of curve at full length
-        x3 = a * fresnels(s_c/a)
-        y3 = a * fresnelc(s_c/a)
+        x3 = a * fresnels(s_c/a);
+        y3 = a * fresnelc(s_c/a);
 
-        %mod(facing - pi/2, 2*pi)
+        % add last curve points to the lane paths
+        curveFacing = [cos(pi/2 - theta) sin(pi/2 - theta) 0];
+        if bidirectional
+            for i=1:lanes
+                lastCurvePoint = 2 * forwardVec + [x3 y3 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                rPaths(i,13:18) = [lastCurvePoint, lastCurvePoint + 2 * curveFacing];
+            end
+        else
+            for i=1:lanes
+                lastCurvePoint = 2 * forwardVec + [x3 y3 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+                rPaths(i,13:18) = [lastCurvePoint, lastCurvePoint + 2 * curveFacing];
+            end
+        end
+        
+        % Rotate path points and road points to orient to facing
+        % Add inPoint to place it in the correct location
         R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
 
-        if angle >= 0
-            curvePoints = [0 0 0; [x1 y1]*R 0; [x2 y2]*R 0; [x3 y3]*R 0];
+        if curvature >= 0
+            curvePoints = [0 0 0; [x1 y1]*R 0; [x2 y2]*R 0; [x3 y3]*R 0] + inPoint + 2 * dirVec;
+            for i=1:lanes
+                for n=1:3:16
+                    rPaths(i,n:n+2) = [[rPaths(i,n) rPaths(i,n+1)]*R rPaths(i,n+2)] + inPoint;
+                end
+            end
         else
-            curvePoints = [0 0 0; [-x1 y1]*R 0; [-x2 y2]*R 0; [-x3 y3]*R 0];
+            curvePoints = [0 0 0; [-x1 y1]*R 0; [-x2 y2]*R 0; [-x3 y3]*R 0] + inPoint + 2 * dirVec;
+            theta = -1 * theta;
+            for i=1:lanes
+                for n=1:3:16
+                    rPaths(i,n:n+2) = [[-rPaths(i,n) rPaths(i,n+1)]*R rPaths(i,n+2)] + inPoint;
+                end
+            end
         end
 
-        curveStart = inPoint + 2 * dirVec;
-        curvePoints = curvePoints + curveStart;
-
-        % adjust facing angle
-        if angle > 0
-            facing = mod(facing - theta, 2*pi)
-        else
-            facing = mod(facing + theta, 2*pi)
-        end
+        % Adjust facing to new direction of road
+        facing = mod(facing - theta, 2*pi);
+        
         dirVec = [cos(facing) sin(facing) 0];
 
+        % set up road points with extra points at beginning and end to
+        % ensure direction is maintained at each
         roadPoints = [inPoint; curvePoints; curvePoints(4,:) + 2 * dirVec];
 
         road(drScn, roadPoints, roadWidth);
         
-        ep = vertcat(ep, roadPoints);
+        for i=1:3:16
+            nextPoint = rPaths(egoLane,i:i+2);
+            ep = vertcat(ep, nextPoint);
+        end
         
         inPoint = roadPoints(6,:);
         
     else
         
+        % Creates straight road
+        
+        newPoint = roadPoint + roadLength * dirVec;
+        
+        roadPoints = [inPoint; newPoint];
+        
+        road(drScn, roadPoints, roadWidth);
+        
+        rPaths = zeros(lanes, 6);
+    
+        % Creates paths as vectors that correspond to the lanes on the road
+        if bidirectional
+            for i=1:lanes
+                startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                newPath = [startPoint, startPoint + length * dirVec];
+                rPaths(i,:) = newPath;
+            end
+        else
+            for i=1:lanes
+                startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                newPath = [startPoint, startPoint + length * dirVec];
+                rPaths(i,:) = newPath;
+            end
+        end
+        
+        inPoint = newPoint;
+        
+        %set up egoPath point
+        for i=1:8
+            nextPoint = rPaths(egoLane,(3*i - 2):3*i);
+            ep = vertcat(ep, nextPoint);
+        end
+        
     end
     
-    %secondPoint = (inPoint + length*dirVec/2) * rotz(angle/4);
-    %thirdPoint = (inPoint + length*dirVec) * rotz(angle/2);
-    % newPoint = inPoint + length/2 * dirVec;
-    
-    %Add road piece to scene (straight for now) with 'roadWidth' width
-    %road(drScn, [inPoint; secondPoint; thirdPoint], roadWidth);
-    %road(drScn, [inPoint; newPoint], roadWidth);
-    
-    
-    % Creates paths as vectors that correspond to the lanes on the road
-    rPaths = zeros(lanes, 24);
-    
-    if bidirectional
-        for i=1:lanes
-            startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH/2 + midTurnLane*LANE_WIDTH/2 + (i-1)*LANE_WIDTH) sin(facing-pi/2)*(LANE_WIDTH/2 + midTurnLane*LANE_WIDTH/2 + (i-1)*LANE_WIDTH) 0];
-            newPath = [(dirVec*2 + startPoint), (dirVec*3 + startPoint), ((length/2-4)*dirVec + startPoint), ((length/2-3)*dirVec + startPoint)];
-            rPaths(i,1:12) = newPath;
-        end
-    else
-        for i=1:lanes
-            startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH/2 + (i-1)*LANE_WIDTH - lanes*LANE_WIDTH/2) sin(facing-pi/2)*(LANE_WIDTH/2 + midTurnLane*LANE_WIDTH/2 + (i-1)*LANE_WIDTH) 0];
-            newPath = [(dirVec*2 + startPoint), (dirVec*3 + startPoint), ((length/2-4)*dirVec + startPoint), ((length/2-3)*dirVec + startPoint)];
-            rPaths(i,1:12) = newPath;
-        end
-    end
-    
-    % Repeats process but after turning the road by the angle parameter
-    %{
-    facing = mod((facing - degtorad(angle)), 2*pi);
-    dirVec = [cos(facing) sin(facing) 0];
-    endPoint = newPoint + length/2 * dirVec;
-    road(drScn, [newPoint; endPoint], roadWidth);
-    
-    if bidirectional
-        for i=1:lanes
-            startPoint = newPoint + [cos(facing-pi/2)*(LANE_WIDTH/2 + midTurnLane*LANE_WIDTH/2 + (i-1)*LANE_WIDTH) sin(facing-pi/2)*(LANE_WIDTH/2 + midTurnLane*LANE_WIDTH/2 + (i-1)*LANE_WIDTH) 0];
-            newPath = [(dirVec*2 + startPoint), (dirVec*3 + startPoint), ((length/2-4)*dirVec + startPoint), ((length/2-3)*dirVec + startPoint)];
-            rPaths(i,13:24) = newPath;
-        end
-    else
-        for i=1:lanes
-            startPoint = newPoint + [cos(facing-pi/2)*(LANE_WIDTH/2 + (i-1)*LANE_WIDTH - lanes*LANE_WIDTH/2) sin(facing-pi/2)*(LANE_WIDTH/2 + midTurnLane*LANE_WIDTH/2 + (i-1)*LANE_WIDTH) 0];
-            newPath = [(dirVec*2 + startPoint), (dirVec*3 + startPoint), ((length/2-4)*dirVec + startPoint), ((length/2-3)*dirVec + startPoint)];
-            rPaths(i,13:24) = newPath;
-        end
-    end
-    
-    
-    %set up egoPath point
-    for i=1:8
-        nextPoint = rPaths(egoLane,(3*i - 2):3*i);
-        ep = vertcat(ep, nextPoint);
-    end
-    %}
     
     % Creates a rectangle around the area occupied by the road piece
     if facing >= 0 && facing < pi/2
@@ -217,7 +252,6 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
     % Sets up parameters to pass into the road info array
     
     rPiece.type = 1;
-    %rPiece.roadPoints = [inPoint; secondPoint; thirdPoint];
     rPiece.roadPoints = roadPoints;
     rPiece.range = [botLeftCorner; topRightCorner];
     rPiece.facing = facing;

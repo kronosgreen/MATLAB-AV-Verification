@@ -15,7 +15,6 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                 egoSpeeds = [egoSpeeds newSpeeds];
             end
         end
-        disp(egoSpeeds);
         trajectory(egoCar,ep,egoSpeeds);
     else
         disp("Error: Empty Ego Path");
