@@ -23,9 +23,9 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
     
     vehicles = [];
     
-    % newActorAssertion = [actorType pathType carType movSpeed dimensions startLoc];
-    %    actors = ["Other Car", "Tree", "Building", "Stop Sign"];
-    %   cars = ["Sedan", "Truck", "Motorcycle"];
+    % newActor = [actorType pathType carType movSpeed dimensions startLoc];
+    % actors = ["Other Car", "Tree", "Building", "Stop Sign"];
+    % cars = ["Sedan", "Truck", "Motorcycle"];
     
     for i = 1:size(actorMatrix,1)
         
@@ -40,6 +40,7 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
             case 1
                 % Vehicle
                 disp('Placing Vehicle');
+                
                 %Get dimensions
                 vLen = (actorMatrix(i,5) + 20) / 30;
                 vWdth = (actorMatrix(i,6) + 20) / 30;
@@ -59,80 +60,95 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                 
                 % create path for new actor
                 newPath = [];
+                % order of path placement for now
+                pathOrder = 1;
                 % base path on path type
                 switch(actorMatrix(i,2))
                     % normal path
                     case 1
-                        for a=posIndex:length(pieces)
-                            if pieces(a).type ~= 0
-                                %find available lane
-                                availableLane = -1;
-                                for b=1:length(pieces(a).occupiedLanes)
-                                    if pieces(a).occupiedLanes(b) == 0
-                                        pieces(a).occupiedLanes(b) = 1;
-                                        availableLane = b;
-                                        break
+                        if actorMatrix(i,9) || ~pieces(2).bidirectional
+                            % Create Forward Path
+                            for a=posIndex:length(pieces)
+                                % Non zero Pieces have drivable points
+                                if pieces(a).type ~= 0
+
+                                    %find available lane
+                                    availableLane = -1;
+                                    for b=1+pieces(a).bidirectional*pieces(a).lanes:(1+pieces(a).bidirectional)*pieces(a).lanes
+                                        if pieces(a).occupiedLanes(b) ~= pathOrder
+                                            pieces(a).occupiedLanes(b) = pathOrder;
+                                            availableLane = b;
+                                            break
+                                        end
                                     end
-                                end
-                                %add lane path to new actor's driving path
-                                if availableLane ~= -1
-                                    for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(availableLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
+                                    %add lane path to new actor's driving path
+                                    if availableLane ~= -1
+                                        for c=1:3:size(pieces(a).forwardDrivingPaths,2)
+                                            nextPoint = pieces(a).forwardDrivingPaths(availableLane, c:c+2);
+                                            newPath = vertcat(newPath, nextPoint);
+                                        end
+                                    else
+                                        % Will find a way to make an actor
+                                        % wait or something
+                                        for c=1:3:size(pieces(a).forwardDrivingPaths,2)
+                                            nextPoint = pieces(a).forwardDrivingPaths(1, c:c+2);
+                                            newPath = vertcat(newPath, nextPoint);
+                                        end
                                     end
-                                else
-                                     for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(availableLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
+
+                                    pathOrder = pathOrder + 1;
                                 end
                             end
+                            
+                        else
+                            
+                            % Create Reverse Path
+                            
+                            for a=posIndex:-1:1
+                                % Non zero Pieces have drivable points
+                                if pieces(a).type ~= 0
+
+                                    %find available lane
+                                    availableLane = -1;
+                                    for b=1:pieces(a).lanes
+                                        if pieces(a).occupiedLanes(b) ~= pathOrder
+                                            pieces(a).occupiedLanes(b) = pathOrder;
+                                            availableLane = b;
+                                            break
+                                        end
+                                    end
+                                    %add lane path to new actor's driving path
+                                    if availableLane ~= -1
+                                        for c=1:3:size(pieces(a).reverseDrivingPaths,2)
+                                            nextPoint = pieces(a).reverseDrivingPaths(availableLane, c:c+2);
+                                            newPath = vertcat(newPath, nextPoint);
+                                        end
+                                    else
+                                        % Will find a way to make an actor
+                                        % wait or something if there's
+                                        % another actor already there
+                                        for c=1:3:size(pieces(a).reverseDrivingPaths,2)
+                                            nextPoint = pieces(a).reverseDrivingPaths(1, c:c+2);
+                                            newPath = vertcat(newPath, nextPoint);
+                                        end
+                                    end
+
+                                    pathOrder = pathOrder + 1;
+                                end
+                            end
+                                    
                         end
+                        
                     % cut-off
                     case 2
-                        %{ 
-                        for a=posIndex:length(pieces)
-                            if pieces(a).type ~= 0
-                                %find available lane
-                                availableLane = -1;
-                                for b=1:length(pieces(a).occupiedLanes)
-                                    if pieces(a).occupiedLanes(b) == 0
-                                        pieces(a).occupiedLanes(b) = 1;
-                                        availableLane = b;
-                                        break
-                                    end
-                                end
-                                %add lane path to new actor's driving path
-                                if availableLane ~= -1
-                                    for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(availableLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
-                                else
-                                     for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(pieces(a).egoLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
-                                end
-                            end
-                        end
-                        %}
-                        for c=1:4
-                            nextPoint = pieces(2).drivingPaths(1,(3*c - 2):3*c);
-                            newPath = vertcat(newPath, nextPoint);
-                        end
-                        for c=1:4
-                            nextPoint = pieces(3).drivingPaths(2,(3*c - 2):3*c);
-                            newPath = vertcat(newPath, nextPoint);
-                        end
+                        
                 end
                 
                 if ~isempty(newPath)
                     %have to add a far off point or else the simulation
                     %will stop when anyone reaches the end
-                    farOffPoint = [1000 1000 1000];
-                    newPath = vertcat(newPath, farOffPoint);
-                    path(ac, newPath, actorMatrix(i, 4));
+                    newPath = vertcat(newPath, [1000 1000 1000]);
+                    trajectory(ac, newPath, ones(1,size(newPath,1)) * actorMatrix(i, 4));
                 end
                 
             case 2

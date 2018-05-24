@@ -17,7 +17,8 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     roadMatrix = zeros(sizeRoad,9);
     
     egoLane = 1;
-    bidirectional = 1;
+    
+    bidirectional = randi(2) - 1;
     
     for i=1:sizeRoad
         
@@ -27,8 +28,9 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         lanes = randi(5);
         
+        % keeping 1 vs 2 way roads the same throughout scene
         probChangeLane = randi(100)/100;
-        if probChangeLane < 0.1
+        if probChangeLane < 0
             egoLane = randi(lanes);
         else
             if egoLane > lanes
@@ -77,7 +79,9 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         startLoc = randi(100) / 100;
         
-        newActor = [actorType carType pathType movSpeed dimensions startLoc];
+        forward = randi(2) - 1;
+        
+        newActor = [actorType carType pathType movSpeed dimensions startLoc forward];
         
         actorMatrix(i,:) = newActor;
         

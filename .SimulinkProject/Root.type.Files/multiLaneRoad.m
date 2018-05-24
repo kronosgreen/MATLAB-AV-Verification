@@ -42,8 +42,8 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         
         % Create Curved Multilane Road
         
-        % Create empty matrix for lane paths
-        rPaths = zeros(lanes, 18);
+        % Create empty matrices for lane paths
+        forwardPaths = zeros(lanes, 18);
         
         %
         % Set up Clothoid Curve based on given curvature
@@ -71,20 +71,24 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         x1 = a * fresnels(s_c/a);
         y1 = a * fresnelc(s_c/a);
         
-        % set up lane paths up to this point
+        % set up lane paths up to this point & establish reverse paths 
         if bidirectional
+            reversePaths = zeros(lanes, 18);
             for i=1:lanes
                 startPoint = [cos(0)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(0)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                newPath = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
-                rPaths(i,1:9) = newPath;
+                forwardPaths(i,1:9) = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
+                
+                startPoint = [cos(pi)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(pi)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                reversePaths(i,10:18) = [firstCurvePoint, startPoint + 2 * forwardVec, startPoint];
             end
         else
+            reversePaths = 0;
             for i=1:lanes
                 startPoint = [cos(0)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(0)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
-                newPath = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
-                rPaths(i,1:9) = newPath;
+                forwardPaths(i,1:9) = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
             end
         end
 
@@ -113,11 +117,12 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         % add second curve point to lane paths
         if bidirectional
             for i=1:lanes
-                rPaths(i,10:12) = 2 * forwardVec + [x2 y2 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                forwardPaths(i,10:12) = 2 * forwardVec + [x2 y2 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                reversePaths(i,7:9) = 2 * forwardVec + [x2 y2 0] + [cos(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
             end
         else
             for i=1:lanes
-                rPaths(i,10:12) = 2 * forwardVec + [x2 y2 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+                forwardPaths(i,10:12) = 2 * forwardVec + [x2 y2 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
             end
         end
 
@@ -148,12 +153,15 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         if bidirectional
             for i=1:lanes
                 lastCurvePoint = 2 * forwardVec + [x3 y3 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                rPaths(i,13:18) = [lastCurvePoint, lastCurvePoint + 2 * curveFacing];
+                forwardPaths(i,13:18) = [lastCurvePoint, lastCurvePoint + 2 * curveFacing];
+                
+                lastCurvePoint = 2 * forwardVec + [x3 y3 0] + [cos(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                reversePaths(i,1:6) = [lastCurvePoint + 2 * curveFacing, lastCurvePoint];
             end
         else
             for i=1:lanes
                 lastCurvePoint = 2 * forwardVec + [x3 y3 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
-                rPaths(i,13:18) = [lastCurvePoint, lastCurvePoint + 2 * curveFacing];
+                forwardPaths(i,13:18) = [lastCurvePoint, lastCurvePoint + 2 * curveFacing];
             end
         end
         
@@ -165,7 +173,10 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
             curvePoints = [0 0 0; [x1 y1]*R 0; [x2 y2]*R 0; [x3 y3]*R 0] + inPoint + 2 * dirVec;
             for i=1:lanes
                 for n=1:3:16
-                    rPaths(i,n:n+2) = [[rPaths(i,n) rPaths(i,n+1)]*R rPaths(i,n+2)] + inPoint;
+                    forwardPaths(i,n:n+2) = [[forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+                    if bidirectional
+                        reversePaths(i,n:n+2) = [[reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+                    end
                 end
             end
         else
@@ -173,7 +184,10 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
             theta = -1 * theta;
             for i=1:lanes
                 for n=1:3:16
-                    rPaths(i,n:n+2) = [[-rPaths(i,n) rPaths(i,n+1)]*R rPaths(i,n+2)] + inPoint;
+                    forwardPaths(i,n:n+2) = [[-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+                    if bidirectional
+                        reversePaths(i,n:n+2) = [[-reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+                    end
                 end
             end
         end
@@ -190,7 +204,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         road(drScn, roadPoints, roadWidth);
         
         for i=1:3:16
-            nextPoint = rPaths(egoLane,i:i+2);
+            nextPoint = forwardPaths(egoLane,i:i+2);
             ep = vertcat(ep, nextPoint);
         end
         
@@ -206,30 +220,30 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         
         road(drScn, roadPoints, roadWidth);
         
-        rPaths = zeros(lanes, 6);
+        forwardPaths = zeros(lanes, 6);
     
         % Creates paths as vectors that correspond to the lanes on the road
         if bidirectional
+            reversePaths = zeros(lanes, 6);
             for i=1:lanes
                 startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                newPath = [startPoint, startPoint + length * dirVec];
-                rPaths(i,:) = newPath;
+                forwardPaths(i,:) = [startPoint, startPoint + length * dirVec];
+                
+                startPoint = inPoint + [cos(facing+pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(facing+pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                reversePaths(i,:) = [startPoint + length * dirVec, startPoint];
             end
         else
+            reversePaths = 0;
             for i=1:lanes
                 startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                newPath = [startPoint, startPoint + length * dirVec];
-                rPaths(i,:) = newPath;
+                forwardPaths(i,:) = [startPoint, startPoint + length * dirVec];
             end
         end
         
         inPoint = newPoint;
         
         %set up egoPath point
-        for i=1:8
-            nextPoint = rPaths(egoLane,(3*i - 2):3*i);
-            ep = vertcat(ep, nextPoint);
-        end
+        ep = vertcat(ep, [forwardPaths(egoLane, 1:3); forwardPaths(egoLane, 4:6)]);
         
     end
     
@@ -258,9 +272,10 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
     rPiece.midTurnLane = midTurnLane;
     rPiece.bidirectional = bidirectional;
     rPiece.lanes = lanes;
-    rPiece.drivingPaths = rPaths;
-    rPiece.occupiedLanes = zeros(1,lanes);
-    rPiece.occupiedLanes(egoLane) = 1;
+    rPiece.forwardDrivingPaths = forwardPaths;
+    rPiece.reverseDrivingPaths = reversePaths;
+    rPiece.occupiedLanes = zeros(1,lanes + bidirectional*lanes);
+    rPiece.occupiedLanes(lanes + egoLane) = 1;
     rPiece.width = roadWidth;
     rPiece.egoLane = egoLane;
     rPiece.weather = 0;

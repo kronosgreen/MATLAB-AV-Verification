@@ -17,7 +17,8 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     roadMatrix = zeros(sizeRoad,9);
     
     egoLane = 1;
-    bidirectional = 1;
+    
+    bidirectional = randi(2) - 1;
     
     for i=1:sizeRoad
         
@@ -27,8 +28,9 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         lanes = randi(5);
         
+        % keeping 1 vs 2 way roads the same throughout scene
         probChangeLane = randi(100)/100;
-        if probChangeLane < 0.1
+        if probChangeLane < 0
             egoLane = randi(lanes);
         else
             if egoLane > lanes
@@ -38,19 +40,19 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         %keeping it bidirectional for now
         probChangeBiDir = randi(100)/100;
-        if probChangeBiDir < 0
+        if probChangeBiDir < 0.1
             bidirectional = randi(2) - 1;
         end
         
-        midLane = 0; %randi(2) - 1;
+        midLane = randi(2) - 1;
         
-        speedLimit = 20; %randi(16) * 5;
+        speedLimit = randi(13) * 5 + 15;
         
         roadSlickness = randi(100) / 200;
         
-        angle = 0.06;
+        curvature = randi(100)/1500 - 0.0333;
         
-        newRoad = [roadPiece roadLength lanes egoLane bidirectional midLane speedLimit roadSlickness angle];
+        newRoad = [roadPiece roadLength lanes egoLane bidirectional midLane speedLimit roadSlickness curvature];
         
         roadMatrix(i,:) = newRoad;
     end
@@ -77,7 +79,9 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         startLoc = randi(100) / 100;
         
-        newActor = [actorType carType pathType movSpeed dimensions startLoc];
+        forward = randi(2) - 1;
+        
+        newActor = [actorType carType pathType movSpeed dimensions startLoc forward];
         
         actorMatrix(i,:) = newActor;
         
