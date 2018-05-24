@@ -121,7 +121,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
             curvePoints = [0 0 0; [-x1 y1]*R 0; [-x2 y2]*R 0; [-x3 y3]*R 0];
         end
 
-        curveStart = inPoint;% + 2 * dirVec;
+        curveStart = inPoint + 2 * dirVec;
         curvePoints = curvePoints + curveStart;
 
         % adjust facing angle
@@ -132,13 +132,13 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         end
         dirVec = [cos(facing) sin(facing) 0];
 
-        roadPoints = curvePoints;%[inPoint; curvePoints; curvePoints(3,:) + 7 * dirVec];
+        roadPoints = [inPoint; curvePoints; curvePoints(4,:) + 2 * dirVec];
 
         road(drScn, roadPoints, roadWidth);
         
         ep = vertcat(ep, roadPoints);
         
-        inPoint = roadPoints(4,:);
+        inPoint = roadPoints(6,:);
         
     else
         
