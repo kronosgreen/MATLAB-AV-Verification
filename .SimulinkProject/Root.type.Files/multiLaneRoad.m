@@ -31,7 +31,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
     % creating a new middle piece in the shape of a trapezoid.
     % Checks to see if this isn't the first piece placed w "curLanes ~= 0"
     if pieces(size(pieces, 1)).lanes ~= 0
-        if roadWidth > pieces(size(pieces,1)).width
+        if roadWidth >= pieces(size(pieces,1)).width
             [ep, inPoint, facing, pieces] = laneIncrease(drScn, inPoint, ep, facing, roadWidth, pieces, dirVec, lanes, egoLane, bidirectional, midTurnLane, speedLimit, roadSlickness);
         elseif roadWidth < pieces(size(pieces,1)).width
             [ep, inPoint, facing, pieces] = laneDecrease(drScn, inPoint, ep, facing, roadWidth, pieces, dirVec, lanes, egoLane, bidirectional, midTurnLane, speedLimit, roadSlickness);
@@ -75,18 +75,18 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         if bidirectional
             reversePaths = zeros(lanes, 18);
             for i=1:lanes
-                startPoint = [cos(0)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(0)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                startPoint = [(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
                 forwardPaths(i,1:9) = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
                 
-                startPoint = [cos(pi)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(pi)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+                startPoint = [-(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
                 reversePaths(i,10:18) = [firstCurvePoint, startPoint + 2 * forwardVec, startPoint];
             end
         else
             reversePaths = 0;
             for i=1:lanes
-                startPoint = [cos(0)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(0)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+                startPoint = [(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
                 forwardPaths(i,1:9) = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
             end
@@ -166,6 +166,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         end
         
         % Rotate path points and road points to orient to facing
+        % Flip over y axis if necessary (negative curvature)
         % Add inPoint to place it in the correct location
         R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
 
@@ -184,9 +185,9 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
             theta = -1 * theta;
             for i=1:lanes
                 for n=1:3:16
-                    forwardPaths(i,n:n+2) = [[-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+                    forwardPaths(i,n:n+2) = [[-forwardPaths(i,n)+2*LANE_WIDTH*(1/2+midTurnLane/2+(i-1)) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
                     if bidirectional
-                        reversePaths(i,n:n+2) = [[-reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+                        reversePaths(i,n:n+2) = [[-reversePaths(i,n)-2*LANE_WIDTH*(1/2 + midTurnLane/2 + (i-1)) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
                     end
                 end
             end
@@ -212,7 +213,9 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         
     else
         
+        %
         % Creates straight road
+        %
         
         newPoint = roadPoint + roadLength * dirVec;
         

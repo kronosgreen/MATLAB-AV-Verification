@@ -18,7 +18,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     egoLane = 1;
     
-    bidirectional = randi(2) - 1;
+    bidirectional = 1;%randi(2) - 1;
     
     for i=1:sizeRoad
         
@@ -40,11 +40,11 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         %keeping it bidirectional for now
         probChangeBiDir = randi(100)/100;
-        if probChangeBiDir < 0.1
+        if probChangeBiDir < 0
             bidirectional = randi(2) - 1;
         end
         
-        midLane = randi(2) - 1;
+        midLane = 0;%randi(2) - 1;
         
         speedLimit = randi(13) * 5 + 15;
         
@@ -57,7 +57,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         roadMatrix(i,:) = newRoad;
     end
     
-    actorMatrix = zeros(sizeActors,8);
+    actorMatrix = zeros(sizeActors,9);
     
     actors = ["Other Car", "Tree", "Building", "Stop Sign"];
     
@@ -67,11 +67,11 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     for i = 1:sizeActors
         
-        actorType = randi(length(actors));
+        actorType = 1;%randi(length(actors));
         
         carType = randi(length(cars));
         
-        pathType = randi(length(paths));
+        pathType = 1;%randi(length(paths));
         
         movSpeed = randi(20) * 5;
         

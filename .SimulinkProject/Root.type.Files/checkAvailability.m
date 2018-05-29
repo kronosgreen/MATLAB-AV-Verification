@@ -43,20 +43,7 @@ function [available] = checkAvailability(pieces, nextPiece, inPoint, facing)
                    available = false;
                end
             end 
-                
-            
-        case 2
-            
-            
-            
-        case 3
-            
-        case 4
-            
-        case 5
-            
-    end
     
-    disp(available);
-end
-
+    end %end switch
+     
+end %end function
