@@ -44,11 +44,10 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         
         % Create empty matrices for lane paths
         forwardPaths = zeros(lanes, 18);
-        if curvature < 0
-            fc = pi;
-        else
-            fc = 0;
-        end
+        % flip correction for when a left turning road has its points
+        % flipped, used only for paths on road
+        
+        fc = (curvature < 0);
         
         %
         % Set up Clothoid Curve based on given curvature
@@ -80,11 +79,11 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         if bidirectional
             reversePaths = zeros(lanes, 18);
             for i=1:lanes
-                startPoint = [(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
+                startPoint = [-(fc*2-1)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
                 forwardPaths(i,1:9) = [startPoint, startPoint + 2 * forwardVec, firstCurvePoint];
 
-                startPoint = [(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
+                startPoint = [(fc*2-1)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
                 firstCurvePoint = 2 * forwardVec + [x1 y1 0] + [cos(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
                 reversePaths(i,10:18) = [firstCurvePoint, startPoint + 2 * forwardVec, startPoint];
             end

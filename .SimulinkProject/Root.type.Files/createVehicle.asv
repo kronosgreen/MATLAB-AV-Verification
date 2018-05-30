@@ -1,4 +1,4 @@
-function [ac, newPath, newSpeeds] = createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, position, posIndex)
+function [ac, newPath] = createVehicle(drScn, pieces, type, pathType, forward, dimensions, position, posIndex)
 %CREATEVEHICLE Create vehicle function
 
 %Get dimensions
@@ -19,17 +19,12 @@ end
 
 % create path for new actor
 newPath = [];
-newSpeeds = [];
 % order of path placement for now
 pathOrder = 1;
 % base path on path type
 switch(pathType)
     
-    %
-    % Normal Path
-    %
-    % - will follow the preset paths set by the roads' lanes
-    
+    % normal path
     case 1
         
         if forward || ~pieces(2).bidirectional
@@ -38,7 +33,7 @@ switch(pathType)
             for a=posIndex:length(pieces)
                 % Non zero Pieces have drivable points
                 if pieces(a).type ~= 0
-                    
+
                     %find available lane
                     availableLane = -1;
                     for b=1+pieces(a).bidirectional*pieces(a).lanes:(1+pieces(a).bidirectional)*pieces(a).lanes
@@ -54,7 +49,6 @@ switch(pathType)
                         for c=1:3:size(pieces(a).forwardDrivingPaths,2)
                             nextPoint = pieces(a).forwardDrivingPaths(availableLane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
-                            newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     else
                         % Will find a way to make an actor
@@ -62,7 +56,6 @@ switch(pathType)
                         for c=1:3:size(pieces(a).forwardDrivingPaths,2)
                             nextPoint = pieces(a).forwardDrivingPaths(1, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
-                            newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     end
 
@@ -92,7 +85,6 @@ switch(pathType)
                         for c=1:3:size(pieces(a).reverseDrivingPaths,2)
                             nextPoint = pieces(a).reverseDrivingPaths(availableLane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
-                            newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     else
                         % Will find a way to make an actor
@@ -101,7 +93,6 @@ switch(pathType)
                         for c=1:3:size(pieces(a).reverseDrivingPaths,2)
                             nextPoint = pieces(a).reverseDrivingPaths(1, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
-                            newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     end
 
@@ -114,7 +105,7 @@ switch(pathType)
     % cut-off
     case 2
 
-end % end switch
+end
 
-end % end function
+end
 

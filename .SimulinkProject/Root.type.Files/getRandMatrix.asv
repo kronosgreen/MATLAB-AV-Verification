@@ -73,7 +73,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         pathType = 1;%randi(length(paths));
         
-        movSpeed = randi(11) - 6;
+        movSpeed = randi(
         
         dimensions = [randi(10) randi(10) randi(10)];
         

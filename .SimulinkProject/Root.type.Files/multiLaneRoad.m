@@ -46,6 +46,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         forwardPaths = zeros(lanes, 18);
         % flip correction for when a left turning road has its points
         % flipped, used only for paths on road
+        
         fc = (curvature < 0);
         
         %
