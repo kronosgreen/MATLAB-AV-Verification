@@ -38,23 +38,19 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         %keeping it bidirectional for now
         probChangeBiDir = randi(100)/100;
-        if probChangeBiDir < 0.1
+        if probChangeBiDir < 0
             bidirectional = randi(2) - 1;
         end
         
-        midLane = randi(2) - 1;
+        midLane = 0; %randi(2) - 1;
         
-<<<<<<< HEAD
-        speedLimit = randi(16)  * 5;
-=======
-        speedLimit = randi(13) * 5 + 15;
->>>>>>> ecec742ea5b9f1c130baba11f5fd499d1272b1f9
+        speedLimit = 20; %randi(16) * 5;
         
         roadSlickness = randi(100) / 200;
         
-        curvature = randi(100)/1500 - 0.0333;
+        angle = 0.06;
         
-        newRoad = [roadPiece roadLength lanes egoLane bidirectional midLane speedLimit roadSlickness curvature];
+        newRoad = [roadPiece roadLength lanes egoLane bidirectional midLane speedLimit roadSlickness angle];
         
         roadMatrix(i,:) = newRoad;
     end

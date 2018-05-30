@@ -15,6 +15,7 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                 egoSpeeds = [egoSpeeds newSpeeds];
             end
         end
+        disp(egoSpeeds);
         trajectory(egoCar,ep,egoSpeeds);
     else
         disp("Error: Empty Ego Path");
@@ -132,7 +133,7 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                     %will stop when anyone reaches the end
                     farOffPoint = [1000 1000 1000];
                     newPath = vertcat(newPath, farOffPoint);
-                    path(ac, newPath, actorMatrix(i, 4));
+                    t(ac, newPath, actorMatrix(i, 4));
                 end
                 
             case 2

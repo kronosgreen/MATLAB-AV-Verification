@@ -13,6 +13,7 @@ function [available] = checkAvailability(pieces, nextPiece, inPoint, facing)
     dirVec = [cos(facing) sin(facing) 0];
 
     switch nextPiece(1)
+        %multilane road
         case 1
             
             rLength = nextPiece(2);
@@ -45,6 +46,8 @@ function [available] = checkAvailability(pieces, nextPiece, inPoint, facing)
                 
             
         case 2
+            
+            
             
         case 3
             
