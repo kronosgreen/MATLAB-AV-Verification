@@ -10,12 +10,11 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
         egoSpeeds = [];
         for z=2:length(pieces)
             if pieces(z).type ~= 0
-                sLim = pieces(z).speedLimit;
-                newSpeeds = ones(1, size(pieces(z).roadPoints, 1)) * sLim;
+                sLim = ;
+                newSpeeds = ones(1, size(pieces(z).roadPoints, 1)) * pieces(z).speedLimitsL;
                 egoSpeeds = [egoSpeeds newSpeeds];
             end
         end
-        disp(egoSpeeds);
         trajectory(egoCar,ep,egoSpeeds);
     else
         disp("Error: Empty Ego Path");
@@ -24,9 +23,9 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
     
     vehicles = [];
     
-    % newActorAssertion = [actorType pathType carType movSpeed dimensions startLoc];
-    %    actors = ["Other Car", "Tree", "Building", "Stop Sign"];
-    %   cars = ["Sedan", "Truck", "Motorcycle"];
+    % newActor = [actorType pathType carType movSpeed dimensions startLoc forward];
+    % actors = ["Other Car", "Tree", "Building", "Stop Sign"];
+    % cars = ["Sedan", "Truck", "Motorcycle"];
     
     for i = 1:size(actorMatrix,1)
         
@@ -41,99 +40,15 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
             case 1
                 % Vehicle
                 disp('Placing Vehicle');
-                %Get dimensions
-                vLen = (actorMatrix(i,5) + 20) / 30;
-                vWdth = (actorMatrix(i,6) + 20) / 30;
-                vHght = (actorMatrix(i,7) + 20) / 30;
-                switch(actorMatrix(i,3))
-                    case 1
-                        % Sedan
-                        ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 1.6 * vHght, 'Position', position);
-                    case 2
-                        % Truck
-                        ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 2.5 * vHght, 'Position', position);
-                    case 3
-                        % Motorcycle
-                        ac = vehicle(drScn, 'Length', 2 * vLen, 'Width', 0.5 * vWdth, 'Height', 1.4 * vHght, 'Position', position);
-                    
-                end
                 
-                % create path for new actor
-                newPath = [];
-                % base path on path type
-                switch(actorMatrix(i,2))
-                    % normal path
-                    case 1
-                        for a=posIndex:length(pieces)
-                            if pieces(a).type ~= 0
-                                %find available lane
-                                availableLane = -1;
-                                for b=1:length(pieces(a).occupiedLanes)
-                                    if pieces(a).occupiedLanes(b) == 0
-                                        pieces(a).occupiedLanes(b) = 1;
-                                        availableLane = b;
-                                        break
-                                    end
-                                end
-                                %add lane path to new actor's driving path
-                                if availableLane ~= -1
-                                    for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(availableLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
-                                else
-                                     for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(availableLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
-                                end
-                            end
-                        end
-                    % cut-off
-                    case 2
-                        %{ 
-                        for a=posIndex:length(pieces)
-                            if pieces(a).type ~= 0
-                                %find available lane
-                                availableLane = -1;
-                                for b=1:length(pieces(a).occupiedLanes)
-                                    if pieces(a).occupiedLanes(b) == 0
-                                        pieces(a).occupiedLanes(b) = 1;
-                                        availableLane = b;
-                                        break
-                                    end
-                                end
-                                %add lane path to new actor's driving path
-                                if availableLane ~= -1
-                                    for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(availableLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
-                                else
-                                     for c=1:4
-                                        nextPoint = pieces(a).drivingPaths(pieces(a).egoLane,(3*c - 2):3*c);
-                                        newPath = vertcat(newPath, nextPoint);
-                                    end
-                                end
-                            end
-                        end
-                        %}
-                        for c=1:4
-                            nextPoint = pieces(2).drivingPaths(1,(3*c - 2):3*c);
-                            newPath = vertcat(newPath, nextPoint);
-                        end
-                        for c=1:4
-                            nextPoint = pieces(3).drivingPaths(2,(3*c - 2):3*c);
-                            newPath = vertcat(newPath, nextPoint);
-                        end
-                end
+                % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, position, posIndex)
+                [ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,2), actorMatrix(i,3), actorMatrix(i,9), actorMatrix(i,4), actorMatrix(i,5:7), position, posIndex);
                 
                 if ~isempty(newPath)
                     %have to add a far off point or else the simulation
                     %will stop when anyone reaches the end
-                    farOffPoint = [1000 1000 1000];
-                    newPath = vertcat(newPath, farOffPoint);
-                    t(ac, newPath, actorMatrix(i, 4));
+                    newPath = vertcat(newPath, [1000 1000 1000]);
+                    trajectory(ac, newPath, newSpeeds);
                 end
                 
             case 2
