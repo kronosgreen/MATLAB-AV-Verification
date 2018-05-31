@@ -1,4 +1,4 @@
-function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
+function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, ep)
     % Call Global variables such as the current scenario 's'
     
     % Creates Ego Vehicle and assigns it the ego path, as well as the speed
@@ -31,6 +31,8 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
         posIndex = round(actorMatrix(i,8) * length(pieces));
         if posIndex == 0
             posIndex = 1;
+        elseif mod(posIndex, 2) == 1
+            posIndex = posIndex + 1;
         end
         position = pieces(posIndex).roadPoints(1,:);
         
@@ -52,6 +54,20 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                 end
                 
             case 2
+                % Pedestrian
+                disp('Placing Pedestrian');
+                
+                % createPedestrian(drScn, pieces, pathType, speed, dimensions, position, posIndex)
+                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,3), actorMatrix(i,5:7), position, posIndex);
+                
+                if ~isempty(newPath)
+                    %have to add a far off point or else the simulation
+                    %will stop when anyone reaches the end
+                    newPath = vertcat(newPath, [1000 1000 1000]);
+                    newSpeeds = [newSpeeds 10];
+                    trajectory(ac, newPath, newSpeeds);
+                end
+            case 3
                 % Tree
                 disp('Placing Tree')
                 
@@ -59,9 +75,6 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                 transformVec = (1 + pieces(posIndex).width / 2) * [cos(rightDir) sin(rightDir) 0];
                 position = position + transformVec; 
                 ac = actor(drScn, 'Length', 0.5, 'Width', 0.5, 'Height', 6, 'Position', position);
-            case 3
-                % Building
-                disp('Placing Building')
             case 4
                 % Stop Sign
                 disp('Placing Stop Sign')

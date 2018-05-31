@@ -7,9 +7,9 @@ clc
 % Num of simulations to run in parallel
 NUM_SIMULATIONS = 5;
 % Num of road pieces to place in scenario
-LEN_ROAD = 10;
+LEN_ROAD = 7;
 % Num of actors to place in scenario (cars, pedestrians, etc.)
-NUM_ACTORS = 14;
+NUM_ACTORS = 7;
 
 runSimulations(NUM_SIMULATIONS, LEN_ROAD, NUM_ACTORS);
 

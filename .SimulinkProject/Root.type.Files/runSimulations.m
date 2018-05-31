@@ -22,7 +22,7 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
         % set_param('AV_Verification_System/Main_Program',
         % 'Scene_Description');
         % sim('AV_Verification_System');
-        str2scen(rMatrix, aMatrix);
+        matrix2scen(rMatrix, aMatrix);
     %end
 
     result = true;
