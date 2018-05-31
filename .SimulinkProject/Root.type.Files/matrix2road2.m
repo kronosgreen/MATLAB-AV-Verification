@@ -18,6 +18,7 @@ function [drScn, pieces, ep] = matrix2road2(drScn, roadMatrix)
     rPiece.range = [0 0 0; 0 0 0];
     rPiece.facing = facing;
     rPiece.length = 0;
+    rPiece.curvature = 0;
     rPiece.midTurnLane = 0;
     rPiece.bidirectional = 0;
     rPiece.lanes = 0;

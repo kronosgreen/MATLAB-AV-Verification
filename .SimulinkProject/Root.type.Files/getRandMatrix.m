@@ -59,7 +59,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     actorMatrix = zeros(sizeActors,9);
     
-    actors = ["Other Car", "Tree", "Building", "Stop Sign"];
+    actors = ["Other Car", "Pedestrian", "Tree", "Building", "Stop Sign"];
     
     cars = ["Sedan", "Truck", "Motorcycle"]; 
     
@@ -67,9 +67,9 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     for i = 1:sizeActors
         
-        actorType = 1;%randi(length(actors));
+        actorType = randi(2);%(length(actors));
         
-        carType = randi(length(cars));
+        carType = randi(3);%(length(cars));
         
         pathType = 1;%randi(length(paths));
         
