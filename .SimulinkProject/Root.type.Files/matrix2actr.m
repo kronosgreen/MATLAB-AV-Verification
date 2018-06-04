@@ -61,8 +61,8 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, ep)
                 % Pedestrian
                 disp('Placing Pedestrian');
                 
-                % createPedestrian(drScn, pieces, pathType, speed, dimensions, position, posIndex)
-                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,3), actorMatrix(i,5:7), position, posIndex);
+                % createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, position, posIndex)
+                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,3), actorMatrix(i,4), actorMatrix(i,9), actorMatrix(i,5:7), position, posIndex);
                 
                 if ~isempty(newPath)
                     %have to add a far off point or else the simulation

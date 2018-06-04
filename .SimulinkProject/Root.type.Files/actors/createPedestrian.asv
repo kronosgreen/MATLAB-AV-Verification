@@ -1,4 +1,4 @@
-function [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, pathType, dimensions, position, posIndex)
+function [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, position, posIndex)
 %CREATEPEDESTRIAN Create pedestrian function
 
 %Get dimensions
@@ -28,7 +28,7 @@ switch(pieces(posIndex).type)
             inPoint = pieces(posIndex).roadPoints(2,:);
             
             % Part of road crossing where 0 < localPos <= 1
-            localPos = 0.5;
+            localPos = randi(100)/100;
             
             % End Curvature
             k_c = abs(pieces(posIndex).curvature) * localPos;
@@ -52,17 +52,17 @@ switch(pieces(posIndex).type)
             
             % set up starting point on right side of road
             if curv >= 0
-                facingDir = mod(pieces(posIndex).facing + theta, 2*pi);
-                rotateAngle = mod(pieces(posIndex).facing + theta/localPos - pi/2, 2*pi);
-                R = [cos(rotateAngle) sin(rotateAngle); -sin(rotateAngle) cos(rotateAngle)];
+                facing = pieces(posIndex-1).facing;
+                facingDir = mod(facing - theta, 2*pi);
+                R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
                 midPoint = [[x y]*R 0] + inPoint;
             % set up starting point on left side. Because the coordinates
             % are flipped for left turning roads, it will switch to the
             % right side and move across the road going left
             else
-                facingDir = mod(pieces(posIndex).facing - theta, 2*pi);
-                rotateAngle = mod(pieces(posIndex).facing - theta/localPos - pi/2, 2*pi);
-                R = [cos(rotateAngle) sin(rotateAngle); -sin(rotateAngle) cos(rotateAngle)];
+                facing = pieces(posIndex-1).facing;
+                facingDir = mod(facing + theta, 2*pi);
+                R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
                 midPoint = [[-x y]*R 0] + inPoint;
             end
             
@@ -94,14 +94,27 @@ switch(pathType)
     
     case 1
         
-        stallSpeed = randi(100) / 100 + 1;
+        % causes the pedestrian to wait at its starting end between 0.33
+        % seconds and 10 seconds by making it move one meter with a speed
+        % of 0.1 to 3 m/s
+        stallSpeed = randi(30) / 10;
         
-        stallPoint = startPoint + [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
-        
+        % sets another point on the left side of the road
         endPoint = startPoint + pieces(posIndex).width * [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
-    
-        newPath = [startPoint; stallPoint; midPoint; endPoint];
-        newSpeeds = [stallSpeed stallSpeed 1.4 1.4];
+        
+        % sets up actor path crossing the street from right to left if
+        % forward parameter is true, left to right if not 
+        if forward
+            stallPoint = startPoint + [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
+            newPath = [startPoint; stallPoint; endPoint];
+        else
+            stallPoint = endPoint + [cos(facingDir - pi/2) sin(facingDir - pi/2) 0];
+            newPath = [endPoint; stallPoint; startPoint];
+        end
+        
+        % after inching at the stall speed, moves across the street at a
+        % speed between 1.0 and 4.5 m/s
+        newSpeeds = [stallSpeed stallSpeed (speed+9)/4];
         
     %
     % Different Path ?
