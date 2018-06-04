@@ -217,7 +217,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         % Creates Straight Road
         %
         
-        newPoint = roadPoint + roadLength * dirVec;
+        newPoint = inPoint + length * dirVec;
         
         roadPoints = [inPoint; newPoint];
         

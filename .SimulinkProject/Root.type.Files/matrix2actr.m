@@ -28,16 +28,19 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, ep)
     
     for i = 1:size(actorMatrix,1)
         
+        % places actor somewhere along the road at a road piece and not a
+        % road transition piece (odd numbers)
         posIndex = round(actorMatrix(i,8) * length(pieces));
         if posIndex == 0
-            posIndex = 1;
+            posIndex = 2;
         elseif mod(posIndex, 2) == 1
             posIndex = posIndex + 1;
         end
         
+        % Sets up default position as first road point of designated piece
         position = pieces(posIndex).roadPoints(1,:);
         
-        
+        % Creates type of actor based on first value of matrix entry
         switch actorMatrix(i,1)
             case 1
                 % Vehicle
@@ -68,19 +71,19 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, ep)
                     newSpeeds = [newSpeeds 10];
                     trajectory(ac, newPath, newSpeeds);
                 end
+                
             case 3
                 % Tree
-                disp('Placing Tree')
+                disp('Placing Tree');
                 
-                rightDir = pieces(posIndex).facing - pi/2;
-                transformVec = (1 + pieces(posIndex).width / 2) * [cos(rightDir) sin(rightDir) 0];
-                position = position + transformVec; 
-                ac = actor(drScn, 'Length', 0.5, 'Width', 0.5, 'Height', 6, 'Position', position);
+                
             case 4
                 % Stop Sign
-                disp('Placing Stop Sign')
-        end 
-    end
+                disp('Placing Stop Sign');
+                
+        end % end switch
+        
+    end % end for loop
     
-end
+end % end function
     
