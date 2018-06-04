@@ -1,4 +1,4 @@
-function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
+function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
     
     %MULTILANEROAD 
     %   Set up road piece with n-lanes based on the lanes parameter. If
@@ -204,10 +204,10 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
 
         road(drScn, roadPoints, roadWidth);
         
-        for i=1:3:16
-            nextPoint = forwardPaths(egoLane,i:i+2);
-            ep = vertcat(ep, nextPoint);
-        end
+        %for i=1:3:16
+        %    nextPoint = forwardPaths(egoLane,i:i+2);
+        %    ep = vertcat(ep, nextPoint);
+        %end
         
         inPoint = roadPoints(6,:);
         
@@ -246,7 +246,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
         inPoint = newPoint;
         
         %set up egoPath point
-        ep = vertcat(ep, [forwardPaths(egoLane, 1:3); forwardPaths(egoLane, 4:6)]);
+        %ep = vertcat(ep, [forwardPaths(egoLane, 1:3); forwardPaths(egoLane, 4:6)]);
         
     end
     
@@ -280,7 +280,7 @@ function [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facin
     rPiece.forwardDrivingPaths = forwardPaths;
     rPiece.reverseDrivingPaths = reversePaths;
     rPiece.occupiedLanes = zeros(1,lanes + bidirectional*lanes);
-    rPiece.occupiedLanes(lanes + egoLane) = (size(pieces,1)+1)/2;
+%    rPiece.occupiedLanes(lanes + egoLane) = (size(pieces,1)+1)/2;
     rPiece.width = roadWidth;
     rPiece.egoLane = egoLane;
     rPiece.weather = 0;

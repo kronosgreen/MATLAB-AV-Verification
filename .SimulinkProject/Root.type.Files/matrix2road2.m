@@ -4,13 +4,12 @@
         one to a road inside scenario
 
 %}
-function [drScn, pieces, ep] = matrix2road2(drScn, roadMatrix)
+function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
 
     close all
     
     inPoint = [0 0 0];
     facing = pi/2;
-    ep = [];
     pieces = [];
     
     rPiece.type = 0;
@@ -42,7 +41,7 @@ function [drScn, pieces, ep] = matrix2road2(drScn, roadMatrix)
             switch roadMatrix(i,1)
                 case 1
                     %Multi-lane Road (drScn, inPoint, ep, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, curvature)
-                    [ep, facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, ep, facing, pieces, roadMatrix(i, 3), roadMatrix(i, 4), roadMatrix(i, 2), roadMatrix(i, 5), roadMatrix(i, 6), roadMatrix(i,7), roadMatrix(i,8), roadMatrix(i,9));
+                    [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, 3), roadMatrix(i, 4), roadMatrix(i, 2), roadMatrix(i, 5), roadMatrix(i, 6), roadMatrix(i,7), roadMatrix(i,8), roadMatrix(i,9));
                 case 2
                     %roundabout
                     

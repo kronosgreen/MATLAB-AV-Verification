@@ -3,7 +3,10 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, ep)
     
     % Creates Ego Vehicle and assigns it the ego path, as well as the speed
     % limits of the road
-    egoCar = vehicle(drScn);
+    
+    % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, position, posIndex)
+                [ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,2), actorMatrix(i,3), actorMatrix(i,9), actorMatrix(i,4), actorMatrix(i,5:7), position, posIndex);
+                
     egoCar.ActorID = 1;
     
     if size(ep) > 0
@@ -62,7 +65,7 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, ep)
                 disp('Placing Pedestrian');
                 
                 % createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, position, posIndex)
-                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,3), actorMatrix(i,4), actorMaactorMatrix(i,5:7), position, posIndex);
+                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,3), actorMatrix(i,4), actorMatrix(i,9), actorMatrix(i,5:7), position, posIndex);
                 
                 if ~isempty(newPath)
                     %have to add a far off point or else the simulation

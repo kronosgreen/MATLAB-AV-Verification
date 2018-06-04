@@ -1,4 +1,4 @@
-function [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, position, posIndex)
+function [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, posIndex)
 %CREATEPEDESTRIAN Create pedestrian function
 
 %Get dimensions
@@ -6,7 +6,7 @@ pLen = (dimensions(1) + 40) / 45;
 pWdth = (dimensions(2) + 40) / 45;
 pHght = (dimensions(3) + 40) / 45;
 
-ac = actor(drScn, 'Length', 0.2 * pLen, 'Width', 0.2 * pWdth, 'Height', 1.75 * pHght, 'Position', position);
+ac = actor(drScn, 'Length', 0.2 * pLen, 'Width', 0.2 * pWdth, 'Height', 1.75 * pHght);
 
 % create path for new actor
 newPath = [];

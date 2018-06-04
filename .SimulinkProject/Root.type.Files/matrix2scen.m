@@ -4,9 +4,9 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     drScn = drivingScenario();
     drScn.StopTime = inf;
 
-    [drScn, pieces, egoPath] = matrix2road2(drScn, roadMatrix);
+    [drScn, pieces] = matrix2road2(drScn, roadMatrix);
 
-    [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces, egoPath);
+    [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
 
     %poseRecord = record(drScn)
 

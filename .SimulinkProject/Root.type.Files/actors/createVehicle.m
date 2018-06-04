@@ -1,4 +1,4 @@
-function [ac, newPath, newSpeeds] = createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, position, posIndex)
+function [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex)
 %CREATEVEHICLE Create vehicle function
 
 %Get dimensions
@@ -8,13 +8,15 @@ vHght = (dimensions(3) + 20) / 30;
 switch(type)
     case 1
         % Sedan
-        ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 1.6 * vHght, 'Position', position);
+        ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 1.6 * vHght);
     case 2
         % Truck
-        ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 2.5 * vHght, 'Position', position);
+        ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 1.6 * vHght);
+        % standard sizes, but too big to see right now
+        %ac = vehicle(drScn, 'Length', 17.5 * vLen, 'Width', 2.5 * vWdth, 'Height', 4.2 * vHght, 'Position', position);
     case 3
         % Motorcycle
-        ac = vehicle(drScn, 'Length', 2 * vLen, 'Width', 0.5 * vWdth, 'Height', 1.4 * vHght, 'Position', position);
+        ac = vehicle(drScn, 'Length', 2 * vLen, 'Width', 0.5 * vWdth, 'Height', 1.4 * vHght);
 end
 
 % create path for new actor
@@ -57,22 +59,27 @@ switch(pathType)
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     else
-                        % Will find a way to make an actor
-                        % wait or something
-                        lanes = pieces(a).lanes;
-                        if speed > 2
-                            speed = speed - 2
-                        end
+                        % Actor will slow down if no available lane
+                        
+                        lane = randi(pieces(a).lanes);
+                        
+                        disp("could not find available lane");
+                        stallPoint = pieces(a).forwardDrivingPaths(lane,1:3) - 2 * [cos(pieces(a-1).facing) sin(pieces(a-1).facing) 0];
+                        newPath = vertcat(newPath, stallPoint);
+                        newSpeeds = [newSpeeds 0];
+
                         for c=1:3:size(pieces(a).forwardDrivingPaths,2)
-                            nextPoint = pieces(a).forwardDrivingPaths(randi(lanes), c:c+2);
+                            nextPoint = pieces(a).forwardDrivingPaths(lane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     end
 
                     pathOrder = pathOrder + 1;
-                end
-            end
+                    
+                end % end if check for non road pieces
+                
+            end % end road pieces for loop
 
         else
 
@@ -91,6 +98,7 @@ switch(pathType)
                             break
                         end
                     end
+                    
                     %add lane path to new actor's driving path
                     if availableLane ~= -1
                         for c=1:3:size(pieces(a).reverseDrivingPaths,2)
@@ -99,22 +107,30 @@ switch(pathType)
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
                     else
-                        % Will find a way to make an actor
-                        % wait or something if there's
-                        % another actor already there
-                        lanes = pieces(a).lanes;
+                        % Actor will slow down if no availbale lane
+                        
+                        lane = randi(pieces(a).lanes);
+   
+                        disp("could not find available lane");
+                        stallPoint = pieces(a).reverseDrivingPaths(lane,1:3) + [cos(pieces(a+1).facing) sin(pieces(a+1).facing) 0];
+                        newPath = vertcat(newPath, stallPoint);
+                        newSpeeds = [newSpeeds 0];
+
                         for c=1:3:size(pieces(a).reverseDrivingPaths,2)
-                            nextPoint = pieces(a).reverseDrivingPaths(randi(lanes), c:c+2);
+                            nextPoint = pieces(a).reverseDrivingPaths(lane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
                         end
+                        
                     end
 
                     pathOrder = pathOrder + 1;
-                end
-            end
+                    
+                end % end if check for non road piece
+                
+            end % end road for loop
 
-        end
+        end % end if forward/reverse
 
     % cut-off
     case 2
