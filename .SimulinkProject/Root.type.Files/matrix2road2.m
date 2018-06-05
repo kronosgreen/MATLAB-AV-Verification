@@ -25,7 +25,6 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     rPiece.reverseDrivingPaths = 0;
     rPiece.occupiedLanes = 0; 
     rPiece.width = 0;
-    rPiece.egoLane = 0;
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = 0;
@@ -37,24 +36,24 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     %
     %   [roadPiece roadLength lanes egoLane bidirectional speedLimit roadSlickness]
     for i = 1:size(roadMatrix,1)
-        if checkAvailability(pieces,roadMatrix(i,:),inPoint, facing)
-            switch roadMatrix(i,1)
-                case 1
-                    %Multi-lane Road (drScn, inPoint, ep, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, curvature)
-                    [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, 3), roadMatrix(i, 4), roadMatrix(i, 2), roadMatrix(i, 5), roadMatrix(i, 6), roadMatrix(i,7), roadMatrix(i,8), roadMatrix(i,9));
-                case 2
-                    %roundabout
-                    
-                case 3
-                    %intersection
-                    
-                case 4
-                    %fork
-                    
-                case 5
-                    %idk
-            end
-        end
-    end
+        switch roadMatrix(i,1)
+            case 1
+                %multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
+                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, 3), roadMatrix(i, 2), roadMatrix(i, 4), roadMatrix(i, 5), roadMatrix(i, 6), roadMatrix(i,7), roadMatrix(i,8));
+            case 2
+                %roundabout
+
+            case 3
+                %intersection
+
+            case 4
+                %fork
+
+            case 5
+                %idk
+                
+        end % end switch
+        
+    end % end for loop
    
-end
+end % end function

@@ -1,22 +1,7 @@
-function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newWidth, pieces, dirVec, lanes, egoLane, bidirectional, midTurnLane, sLimit, rSlick)
+function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newWidth, pieces, dirVec, lanes, bidirectional, midTurnLane, sLimit, rSlick)
     %LANESIZECHANGE
-    %   Creates the transition piece between a road piece and one of greater
-    %   width
-
-
-    if facing >= 0 && facing < pi/2
-        botLeftCorner = inPoint + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + 10*dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    elseif facing >= pi/2 && facing < pi
-        botLeftCorner = inPoint + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + 10*dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    elseif facing >= pi && facing < 3*pi/2
-        botLeftCorner = inPoint + 10*dirVec + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    else
-        botLeftCorner = inPoint + 10*dirVec + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    end
+    %   Creates the transition piece between two road pieces to account for
+    %   difference in number of lanes or size
     
     oldPoint = inPoint;
 
@@ -24,14 +9,42 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
 
     change = newWidth - rWidth;
 
-    %how broken down will the 
+    % How many pieces the transition will take place over
     numPieces = 8;
-
+    
+    % Total length of transition piece
+    transitionSize = 10;
+    
+    % Lane Markings
+    lm = [laneMarking('Solid','Color','w'); ...
+        laneMarking('DoubleSolid','Color','y'); ...
+        laneMarking('Solid','Color','w')];
+    
+    % Calculate Transition pieces and place on road
     for i = 1:numPieces
         rWidth = rWidth + change/numPieces;
-        newPoint = oldPoint + 10*dirVec/numPieces;
-        road(drScn, [oldPoint; newPoint], rWidth);
+        newPoint = oldPoint + transitionSize*dirVec/numPieces;
+        
+        % Lane Specifications
+        ls = lanespec(2,'Width',rWidth/2,'Marking',lm);
+        
+        road(drScn, [oldPoint; newPoint], 'Lanes', ls);
         oldPoint = newPoint;
+    end
+    
+    % set up bounding box
+    if facing >= 0 && facing < pi/2
+        botLeftCorner = inPoint + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
+        topRightCorner = inPoint + transitionSize*dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
+    elseif facing >= pi/2 && facing < pi
+        botLeftCorner = inPoint + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
+        topRightCorner = inPoint + transitionSize*dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    elseif facing >= pi && facing < 3*pi/2
+        botLeftCorner = inPoint + transitionSize*dirVec + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
+        topRightCorner = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    else
+        botLeftCorner = inPoint + transitionSize*dirVec + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
+        topRightCorner = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
     end
 
     
@@ -48,7 +61,6 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     rPiece.reverseDrivingPaths = 0;
     rPiece.occupiedLanes = [0];
     rPiece.width = rWidth;
-    rPiece.egoLane = egoLane;
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = sLimit;

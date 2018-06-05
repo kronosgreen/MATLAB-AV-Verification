@@ -13,7 +13,6 @@ newPath = [];
 newSpeeds = [];
 
 % determine starting position to the right of the road
-if posIndex
 switch(pieces(posIndex).type)
  
     % Multilane Road

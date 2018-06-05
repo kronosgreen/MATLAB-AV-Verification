@@ -6,42 +6,38 @@
 
 function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
+%GETRANDMATRIX creates matrices randomly with seed rngNum that will become
+%a scenario
+    
     %need to set up biases/weights for preferred scenarios here
     
     rng(rngNum,'twister');
     
     pieces = ["Multilane Road", "Roundabout", "4-way Intersection", "Fork"];
     
-    randPiece = randi(length(pieces), sizeRoad, 1);
-    
-    roadMatrix = zeros(sizeRoad,9);
+    roadMatrix = zeros(sizeRoad,8);
     
     egoLane = 1;
     
-    bidirectional = 1;%randi(2) - 1;
+    % 0 = one direction
+    % 1 = two directions with double solid yellow line
+    % 2 = two directions with dashed yellow line
+    % currently set to be bidirectional
+    bidirectional = randi(2);
     
     for i=1:sizeRoad
         
-        roadPiece = 1;%randPiece(i);
+        % Currently only multilane road is implemented
+        roadPiece = 1;
         
         roadLength = randi(18) * 5 + 10;
         
         lanes = randi(5);
         
-        % keeping 1 vs 2 way roads the same throughout scene
-        probChangeLane = randi(100)/100;
-        if probChangeLane < 0
-            egoLane = randi(lanes);
-        else
-            if egoLane > lanes
-                egoLane = randi(lanes);
-            end
-        end
-        
         %keeping it bidirectional for now
         probChangeBiDir = randi(100)/100;
         if probChangeBiDir < 0
-            bidirectional = randi(2) - 1;
+            bidirectional = randi(3) - 1;
         end
         
         midLane = randi(2) - 1;
@@ -52,7 +48,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         curvature = randi(100)/1500 - 0.0333;
         
-        newRoad = [roadPiece roadLength lanes egoLane bidirectional midLane speedLimit roadSlickness curvature];
+        newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit roadSlickness curvature];
         
         roadMatrix(i,:) = newRoad;
     end

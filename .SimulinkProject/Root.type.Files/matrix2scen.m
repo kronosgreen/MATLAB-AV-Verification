@@ -22,9 +22,9 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     hAxes2 = axes('Parent',hPanel2);
     hAxes3 = axes('Parent',hPanel3);
 
-    plot(drScn, 'Parent', hAxes1, 'Waypoints', 'on', 'Centerline','on');
+    plot(drScn, 'Parent', hAxes1, 'Waypoints', 'off', 'Centerline','off');
 
-    chasePlot(egoCar, 'Parent', hAxes2,'Centerline','on');
+    chasePlot(egoCar, 'Parent', hAxes2,'Centerline','off');
 
     egoCarBEP = birdsEyePlot('Parent',hAxes3,'XLimits',[-200 200],'YLimits',[-240 240]);
     fastTrackPlotter = trackPlotter(egoCarBEP,'MarkerEdgeColor','red','DisplayName','target','VelocityScaling',.5);

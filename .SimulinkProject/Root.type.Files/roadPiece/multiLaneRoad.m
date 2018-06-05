@@ -1,4 +1,4 @@
-function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, lanes, egoLane, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
+  function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
     
     %MULTILANEROAD 
     %   Set up road piece with n-lanes based on the lanes parameter. If
@@ -10,29 +10,62 @@ function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, piece
     % Set up direction the road starts off going in by taking the 
     % facing parameter in radians and creating a vector
     dirVec = [cos(facing) sin(facing) 0];
-    forwardVec = [cos(pi/2) sin(pi/2) 0];
+    forwardVec = [0 1 0];
     
-    % Set up the width of the road based on whether it is 
-    % bidirectional and whether it has a turn lane, is passed 
-    % into the AV Toolbox function "road" as the third parameter
-    LANE_WIDTH = 3; 
-
+    % Get lane width
+    global LANE_WIDTH;
+    
+    % Also set up lane markings & specifications
+    % Start off left side of the road with a solid white line
+    lm = laneMarking('Solid','Color','w');
+    
+    % Place lane markings for left side of road if bidirectional, whole
+    % road if not
+    for i=1:lanes-1
+        lm = vertcat(lm, laneMarking('Dashed', 'Color', 'w'));
+    end
+    
+    
     if bidirectional
         roadWidth = 2 * lanes * LANE_WIDTH;
         if midTurnLane
             roadWidth = roadWidth + LANE_WIDTH;
+            % Surround mid-turn lane with dashed-solid lines
+            lm = vertcat(lm, [laneMarking('SolidDashed', 'Color', 'y');...
+                laneMarking('DashedSolid', 'Color', 'y')]);
+        else
+            if bidirectional == 1
+                % Split road with double solid yellow
+                lm = vertcat(lm, laneMarking('DoubleSolid', 'Color', 'y'));
+            elseif bidirectional == 2
+                % Split road with dashed yellow line
+                lm = vertcat(lm, laneMarking('Dashed', 'Color', 'y'));
+            end
+        end
+        
+        % Finish off lanes on right side
+        for i=1:lanes-1
+            lm = vertcat(lm, laneMarking('Dashed', 'Color', 'w'));
         end
     else 
         roadWidth = lanes * LANE_WIDTH;
     end
-
+    
+    % end road with a solid white line
+    lm = vertcat(lm, laneMarking('Solid', 'Color', 'w'));
+    
+    % Define lane specifications to be separated by LANE_WIDTH
+    ls = lanespec(roadWidth/LANE_WIDTH, 'Width', LANE_WIDTH, 'Marking', lm);
     
     % Transition the lane width from the previous piece to the current one
     % creating a new middle piece in the shape of a trapezoid.
     % Checks to see if this isn't the first piece placed
     if pieces(size(pieces, 1)).lanes ~= 0
-        [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, roadWidth, pieces, dirVec, lanes, egoLane, bidirectional, midTurnLane, speedLimit, roadSlickness);
+        [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, roadWidth, pieces, dirVec, lanes, bidirectional, midTurnLane, speedLimit, roadSlickness);
     end
+    
+    % Set up matrix to store corner points
+    corners = zeros(4,3);
     
     if curvature ~= 0
         
@@ -192,6 +225,10 @@ function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, piece
                 end
             end
         end
+        
+        % Set up first two corners
+        corners(1,:) = inPoint + [cos(facing + pi/2) sin(facing + pi/2) 0];
+        corners(2,:) = inPoint - [cos(facing + pi/2) sin(facing + pi/2) 0];
 
         % Adjust facing to new direction of road
         facing = mod(facing - theta, 2*pi);
@@ -201,14 +238,12 @@ function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, piece
         % set up road points with extra points at beginning and end to
         % ensure direction is maintained at each
         roadPoints = [inPoint; curvePoints; curvePoints(4,:) + 2 * dirVec];
-
-        road(drScn, roadPoints, roadWidth);
         
-        %for i=1:3:16
-        %    nextPoint = forwardPaths(egoLane,i:i+2);
-        %    ep = vertcat(ep, nextPoint);
-        %end
+        % Set up last two corners
+        corners(3,:) = roadPoints(6,:) + [cos(facing + pi/2) sin(facing + pi/2) 0];
+        corners(4,:) = roadPoints(6,:) - [cos(facing + pi/2) sin(facing + pi/2) 0];
         
+        % Update inPoint
         inPoint = roadPoints(6,:);
         
     else
@@ -221,9 +256,10 @@ function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, piece
         
         roadPoints = [inPoint; newPoint];
         
-        road(drScn, roadPoints, roadWidth);
-        
         forwardPaths = zeros(lanes, 6);
+        
+        % change in direction
+        theta = 0;
     
         % Creates paths as vectors that correspond to the lanes on the road
         if bidirectional
@@ -243,28 +279,33 @@ function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, piece
             end
         end
         
-        inPoint = newPoint;
+        % Set up corners to make boundaries
+        corners(1,:) = inPoint + roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
+        corners(2,:) = inPoint - roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
+        corners(3,:) = newPoint + roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
+        corners(4,:) = newPoint - roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
         
-        %set up egoPath point
-        %ep = vertcat(ep, [forwardPaths(egoLane, 1:3); forwardPaths(egoLane, 4:6)]);
+        % Update inPoint
+        inPoint = newPoint;
         
     end
     
     
     % Creates a rectangle around the area occupied by the road piece
-    if facing >= 0 && facing < pi/2
-        botLeftCorner = inPoint + [-cos(facing+pi/2)*roadWidth/2 -sin(facing-pi/2)*roadWidth/2 0];
-        topRightCorner = inPoint + length*dirVec + [cos(facing-pi/2)*4 sin(facing+pi/2)*4 0];
-    elseif facing >= pi/2 && facing < pi
-        botLeftCorner = inPoint + [-cos(facing-pi/2)*roadWidth/2 -sin(facing+pi/2)*roadWidth/2 0];
-        topRightCorner = inPoint + length*dirVec + [cos(facing+pi/2)*4 sin(facing-pi/2)*4 0];
-    elseif facing >= pi && facing < 3*pi/2
-        botLeftCorner = inPoint + length*dirVec + [-cos(facing-pi/2)*roadWidth/2 -sin(facing+pi/2)*roadWidth/2 0];
-        topRightCorner = inPoint + [cos(facing+pi/2)*4 sin(facing-pi/2)*4 0];
-    else
-        botLeftCorner = inPoint + length*dirVec + [-cos(facing+pi/2)*roadWidth/2 -sin(facing-pi/2)*roadWidth/2 0];
-        topRightCorner = inPoint + [cos(facing-pi/2)*4 sin(facing+pi/2)*4 0];
+    botLeftCorner = [min([corners(1,1) corners(2,1) corners(3,1) corners(4,1)]) min([corners(1,2) corners(2,2) corners(3,2) corners(4,2)]) 0];
+    topRightCorner = [max([corners(1,1) corners(2,1) corners(3,1) corners(4,1)]) max([corners(1,2) corners(2,2) corners(3,2) corners(4,2)]) 0];
+    
+    % If conflicts with any other piece, will stop placing
+    if ~checkAvailability(pieces, botLeftCorner, topRightCorner)
+        % return original variables
+        inPoint = roadPoints(1,:);
+        facing = mod(facing + theta, 2*pi);
+        return
     end
+    
+    % Create Road Piece in Scenario
+    road(drScn, roadPoints, 'Lanes', ls);
+    
     
     % Sets up parameters to pass into the road info array
     
@@ -280,9 +321,7 @@ function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, piece
     rPiece.forwardDrivingPaths = forwardPaths;
     rPiece.reverseDrivingPaths = reversePaths;
     rPiece.occupiedLanes = zeros(1,lanes + bidirectional*lanes);
-%    rPiece.occupiedLanes(lanes + egoLane) = (size(pieces,1)+1)/2;
     rPiece.width = roadWidth;
-    rPiece.egoLane = egoLane;
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = speedLimit;
