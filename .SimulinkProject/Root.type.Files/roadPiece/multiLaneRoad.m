@@ -214,16 +214,26 @@
                 end
             end
         else
+            
             curvePoints = [0 0 0; [-x1 y1]*R 0; [-x2 y2]*R 0; [-x3 y3]*R 0] + inPoint + 2 * dirVec;
             theta = -1 * theta;
             for i=1:lanes
                 for n=1:3:16
-                    forwardPaths(i,n:n+2) = [[-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
                     if bidirectional
                         reversePaths(i,n:n+2) = [[-reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+                        forwardPaths(i,n:n+2) = [[-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+                    else
+                        if n <= 4
+                            % don't flip first two points, for some reason
+                            % get flipped twice (one-way road)
+                            forwardPaths(i,n:n+2) = [ [forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+                        else
+                            forwardPaths(i,n:n+2) = [ [-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+                        end
                     end
                 end
             end
+            
         end
         
         % Set up first two corners

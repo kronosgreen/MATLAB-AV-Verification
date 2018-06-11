@@ -10,9 +10,9 @@ setGlobalVars();
 % Num of simulations to run in parallel
 NUM_SIMULATIONS = 5;
 % Num of road pieces to place in scenario
-LEN_ROAD = 5;
+LEN_ROAD = 10;
 % Num of actors to place in scenario (cars, pedestrians, etc.)
-NUM_ACTORS = 13;
+NUM_ACTORS = 10;
 
 runSimulations(NUM_SIMULATIONS, LEN_ROAD, NUM_ACTORS);
 

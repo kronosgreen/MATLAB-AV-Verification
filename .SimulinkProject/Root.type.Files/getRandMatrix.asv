@@ -21,7 +21,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     % 1 = two directions with double solid yellow line
     % 2 = two directions with dashed yellow line
     % currently set to be bidirectional
-    bidirectional = 0;randi(3) - 1;
+    bidirectional = randi(2);
     
     for i=1:sizeRoad
         
@@ -31,6 +31,12 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         roadLength = randi(18) * 5 + 10;
         
         lanes = randi(5);
+        
+        %keeping it bidirectional for now
+        probChangeBiDir = randi(100)/100;
+        if probChangeBiDir < 0
+            bidirectional = randi(3) - 1;
+        end
         
         midLane = randi(2) - 1;
         
