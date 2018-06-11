@@ -6,7 +6,7 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     %poolobj = gcp;
     %addAttachedFiles(poolobj, {});
     
-    disp("Runnning " + numSimulations + " simulations.")
+    disp("Running " + numSimulations + " simulations.")
     
     % clears previous file, this stores the input to the different 
     % simulations that were run 
@@ -17,20 +17,13 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     
     % Runs simulations in parallel by distributing each iteration to
     % pool of workers, uses iterator as rng seed
-<<<<<<< HEAD
+
    % parfor i=1:numSimulations
         % [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, i);
-        rMatrix = [1 20 3 2 1 1 50 0.3 0; 1 20 2 2 1 1 50 0.3 0];
-        aMatrix = [1 2 1 55 1 1 1 0];
+        rMatrix = [1 45 2 2 1 1 50 0.06 0; 1 60 3 2 1 1 55 0.06 0];
+        aMatrix = [1 2 1 60 1 1 1 0];
         % set_param('AV_Verification_System/Scenario', 'Scene_Description',
         % rMatrix);
-=======
-    parfor i=1:numSimulations
-        [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, i);
-        % set_param('AV_Verification_System/Main_Program',
-        % 'Scene_Description');
->>>>>>> 8be699bab2a8031654cb0df256112b418402c155
-        % sim('AV_Verification_System');
         str2scen(rMatrix, aMatrix);
     %end
 

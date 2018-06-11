@@ -123,7 +123,7 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                             newPath = vertcat(newPath, nextPoint);
                         end
                         for c=1:4
-                            nextPoint = pieces(3).drivingPaths(2,(3*c - 2):3*c);
+                            nextPoint = pieces(4).drivingPaths(2,(3*c - 2):3*c);
                             newPath = vertcat(newPath, nextPoint);
                         end
                 end
@@ -133,7 +133,7 @@ function [vehicles, egoCar] = str2actr(drScn, actorMatrix, pieces, ep)
                     %will stop when anyone reaches the end
                     farOffPoint = [1000 1000 1000];
                     newPath = vertcat(newPath, farOffPoint);
-                    path(ac, newPath, 15);
+                    path(ac, newPath, 55);
                 end
                 
             case 2
