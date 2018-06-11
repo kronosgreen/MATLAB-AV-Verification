@@ -34,12 +34,8 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         midLane = randi(2) - 1;
         
-<<<<<<< HEAD
-        speedLimit = randi(16)  * 5;
-=======
         speedLimit = randi(11) * 2.2352 + 11.176;
->>>>>>> master
-        
+
         roadSlickness = randi(100) / 200;
         
         curvature = randi(100)/1500 - 0.0333;
