@@ -5,7 +5,7 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     % limits of the road
     
     % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex)
-    [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, 1, 1, 1, 0, [1 1 1], 1);           
+    [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, 1, 1, 1, 0, [1 1 1], 1, 0);           
     egoCar.ActorID = 1;
 
     trajectory(egoCar,ep,egoSpeeds);
@@ -34,7 +34,7 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                 disp('Placing Vehicle');
                 
                 % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex)
-                [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,2), actorMatrix(i,3), actorMatrix(i,9), actorMatrix(i,4), actorMatrix(i,5:7), posIndex);
+                [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,2), actorMatrix(i,3), actorMatrix(i,9), actorMatrix(i,4), actorMatrix(i,5:7), posIndex, actorMatrix(i,10));
 
                 if ~isempty(newPath)
                     %have to add a far off point or else the simulation

@@ -285,7 +285,7 @@
             reversePaths = 0;
             for i=1:lanes
                 startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                forwardPaths(i,:) = [startPoint, startPoint + length * dirVec];
+                forwardPaths(i,:) = [startPoint, startPoint + dirVec * length / 4, startPoint + dirVec * length / 2, startPoint + 3 * dirVec * length / 4, startPoint + length * dirVec];
             end
         end
         
