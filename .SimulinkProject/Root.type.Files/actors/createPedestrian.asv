@@ -125,9 +125,8 @@ switch(pathType)
         % of 0.1 to 3 m/s
         stallSpeed = randi(30) / 10;
         
-        % stopping point, somewhere between the two possible stall points,
-        % or 1 meter from either side of the road
-        stopPoint = startPoint + (rand() * (pieces(posIndex).width - 2.01) + 1.01) * [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
+        % stopping point
+        stopPoint = startPoint + (rand() * (pieces(posIndex).width - 2) + 1) * [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
         
         % sets another point on the left side of the road
         endPoint = startPoint + pieces(posIndex).width * [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
