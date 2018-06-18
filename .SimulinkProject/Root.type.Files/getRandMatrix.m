@@ -13,7 +13,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     rng(rngNum,'twister');
     
-    roadMatrix = zeros(sizeRoad,8);
+    roadMatrix = zeros(sizeRoad,9);
     
     pieces = ["Multilane Road", "Roundabout", "4-way Intersection", "Fork"];
     
@@ -28,7 +28,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % Currently only multilane road is implemented
         roadPiece = 1;
         
-        roadLength = randi(18) * 5 + 10;
+        roadLength = randi(14) * 5 + 30;
         
         lanes = randi(5);
         
@@ -38,9 +38,11 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         roadSlickness = randi(100) / 200;
         
-        curvature = randi(100)/1500 - 0.0333;
+        curvature1 = 0.0666 * rand() - 0.0333;
         
-        newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit roadSlickness curvature];
+        curvature2 = 0.0666 * rand() - 0.0333;
+        
+        newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit roadSlickness curvature1 curvature2];
         
         roadMatrix(i,:) = newRoad;
     end

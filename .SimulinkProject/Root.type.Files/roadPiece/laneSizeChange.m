@@ -248,11 +248,13 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
 
     
     rPiece.type = 0;
+    rPiece.lineType = 0;
     rPiece.roadPoints = [inPoint; newPoint];
     rPiece.range = [botLeftCorner; topRightCorner];
     rPiece.facing = facing;
     rPiece.length = 10;
-    rPiece.curvature = 0;
+    rPiece.curvature1 = 0;
+    rPiece.curvature2 = 0;
     rPiece.midTurnLane = midTurnLane;
     rPiece.bidirectional = bidirectional;
     rPiece.lanes = lanes;
