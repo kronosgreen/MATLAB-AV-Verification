@@ -69,14 +69,37 @@
     corners = zeros(4,3);
     
     
-    if curvature1 ~= 0 || curvature2 ~= 0
+    if curvature1 == 0 && curvature2 == 0
+        lineType = 0;
+    elseif curvature1 == 0 
+        lineType = 1;
+        curv = curvature1;
+    elseif curvature2 == 0
+        lineType = 1;
+        curv = curvature2;
+    elseif mod((curvature1 + curvature2)*1000,2) == 0
+        lineType = 2;
+    else
+        lineType = 3;
+    end
         
-        if curvature1 == 0 || curvature2 == 0
-            lineType = 1
-        
-        
-        % Create Curved Multilane Road
-        
+    % Create Curved Multilane Road
+    switch lineType
+        case 0
+            createStraightLine();
+        case 1
+            % createStraightLine();
+            [curvePoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curv);
+            [curvePoints, fwPaths3, rvPaths3, inPoint, facing] = createArc(inPoint, facing, length, curv, lanes, bidirectional, midTurnLane);
+        case 2
+            [curvePoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curvature1);
+            [curvePoints, fwPaths2, rvPaths2, inPoint, facing] = createArc(inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+            [curvePoints, fwPaths3, rvPaths3, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+        case 3
+            [curvePoints, fwPaths1, reversePaths1, inPoint, facing] = createArc(inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+            [curvePoints, fwPaths2, reversePaths2, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+            [curvePoints, fwPaths3, reversePaths3, inPoint, facing] = createArc(inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
+    end
         
         
         % Set up first two corners
@@ -98,40 +121,7 @@
         
         % Update inPoint
         inPoint = roadPoints(6,:);
-        
-    else
-        
-        %
-        % Creates Straight Road
-        %
-        
-        newPoint = inPoint + length * dirVec;
-        
-        roadPoints = [inPoint; newPoint];
-        
-        forwardPaths = zeros(lanes, 6);
-        
-        % change in direction
-        theta = 0;
-    
-        % Creates paths as vectors that correspond to the lanes on the road
-        if bidirectional
-            reversePaths = zeros(lanes, 6);
-            for i=1:lanes
-                startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                forwardPaths(i,:) = [startPoint, startPoint + length * dirVec];
-                
-                startPoint = inPoint + [cos(facing+pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(facing+pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                reversePaths(i,:) = [startPoint + length * dirVec, startPoint];
-            end
-        else
-            reversePaths = 0;
-            for i=1:lanes
-                startPoint = inPoint + [cos(facing-pi/2)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(facing-pi/2)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-                forwardPaths(i,:) = [startPoint, startPoint + dirVec * length / 4, startPoint + dirVec * length / 2, startPoint + 3 * dirVec * length / 4, startPoint + length * dirVec];
-            end
-        end
-        
+      
         % Set up corners to make boundaries
         corners(1,:) = inPoint + roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
         corners(2,:) = inPoint - roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
@@ -140,10 +130,7 @@
         
         % Update inPoint
         inPoint = newPoint;
-        
-    end
-    
-    
+
     % Creates a rectangle around the area occupied by the road piece
     botLeftCorner = [min([corners(1,1) corners(2,1) corners(3,1) corners(4,1)]) min([corners(1,2) corners(2,2) corners(3,2) corners(4,2)]) 0];
     topRightCorner = [max([corners(1,1) corners(2,1) corners(3,1) corners(4,1)]) max([corners(1,2) corners(2,2) corners(3,2) corners(4,2)]) 0];

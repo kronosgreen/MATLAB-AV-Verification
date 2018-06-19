@@ -1,4 +1,4 @@
-function [curvePoints, forwardPaths, reversePaths, inPoint, facing, curvature] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, startCurvature, endCurvature)
+function [curvePoints, forwardPaths, reversePaths, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, startCurvature, endCurvature)
 %CREATECLOTHOID Creates a clothoid line given a starting point, start and
 %end curvature, and a facing direction. Returns points for driving paths as
 %well

@@ -2,6 +2,10 @@ function [linePoints, forwardPaths, reversePaths, inPoint, facing] = createStrai
 %CREATESTRAIGHTLINE Creates a road as a straight line, used for cases with
 %curvature of 0
 
+%
+% Creates Straight Road
+%
+
 newPoint = inPoint + length * dirVec;
 
 roadPoints = [inPoint; newPoint];
