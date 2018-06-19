@@ -1,15 +1,19 @@
-function [linePoints, forwardPaths, reversePaths, inPoint, facing] = createStraightLine(inPoint, facing, length, lanes, bidirectional, midTurnLane)
+function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane)
 %CREATESTRAIGHTLINE Creates a road as a straight line, used for cases with
 %curvature of 0
 
+% get global lane width
+global LANE_WIDTH;
+
+% set dirVec
+dirVec = [cos(facing) sin(facing) 0];
+
+% set end point of road piece
 newPoint = inPoint + length * dirVec;
 
-roadPoints = [inPoint; newPoint];
+roadPoints = [roadPoints; inPoint; newPoint];
 
 forwardPaths = zeros(lanes, 6);
-
-% change in direction
-theta = 0;
 
 % Creates paths as vectors that correspond to the lanes on the road
 if bidirectional
@@ -28,6 +32,8 @@ else
         forwardPaths(i,:) = [startPoint, startPoint + dirVec * length / 4, startPoint + dirVec * length / 2, startPoint + 3 * dirVec * length / 4, startPoint + length * dirVec];
     end
 end
+
+inPoint = newPoint;
 
 
 end

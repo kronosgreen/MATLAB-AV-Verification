@@ -168,11 +168,7 @@ else
 
 end
 
-% update facing
-facing = mod(facing - theta, 2*pi);
 
-%update road points with new curve points
-roadPoints = [roadPoints; curvePoints];
 
 end
 

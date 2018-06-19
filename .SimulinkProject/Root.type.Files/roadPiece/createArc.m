@@ -1,4 +1,4 @@
-function [curvePoints, forwardPaths, reversePaths, inPoint, facing] = createArc(inPoint, facing, length, curvature, lanes, bidirectional, midTurnLane)
+function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature, lanes, bidirectional, midTurnLane)
 %CREATEARC create an arc road piece, or a piece with a constant curvature,
 % otherwise part of a circle
 
@@ -68,6 +68,8 @@ end
 inPoint = curvePoints(N,:);
 
 facing = mod(facing - length * curvature, 2 * pi);
+
+roadPoints = [roadPoints; curvePonts];
 
 end
 

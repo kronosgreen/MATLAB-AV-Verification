@@ -10,8 +10,10 @@
     % Set up direction the road starts off going in by taking the 
     % facing parameter in radians and creating a vector
     dirVec = [cos(facing) sin(facing) 0];
-    forwardVec = [0 1 0];
+    
+    % get original parameters stored
     oldFacing = facing;
+    oldInPoint = inPoint;
     
     % Get lane width
     global LANE_WIDTH;
@@ -68,7 +70,7 @@
     % Set up matrix to store corner points
     corners = zeros(4,3);
     
-    
+    % determine the line type
     if curvature1 == 0 && curvature2 == 0
         lineType = 0;
     elseif curvature1 == 0 
@@ -77,59 +79,53 @@
     elseif curvature2 == 0
         lineType = 1;
         curv = curvature2;
-    elseif mod((curvature1 + curvature2)*1000,2) == 0
+    % determining whether the road is clothoid-arc-clothoid or the reverse
+    % of that is currently done arbitrarily; most likely will add parameter
+    % later
+    elseif mod((curvature1 / curvature2)*1000,2) == 0
         lineType = 2;
     else
         lineType = 3;
     end
-        
+    
+    % set up empty matrix for road points
+    roadPoints = [];
+    
     % Create Curved Multilane Road
     switch lineType
         case 0
-            createStraightLine();
+            [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane)
         case 1
-            % createStraightLine();
-            [curvePoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curv);
-            [curvePoints, fwPaths3, rvPaths3, inPoint, facing] = createArc(inPoint, facing, length, curv, lanes, bidirectional, midTurnLane);
+            [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane)
+            [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curv);
+            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curv, lanes, bidirectional, midTurnLane);
         case 2
-            [curvePoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curvature1);
-            [curvePoints, fwPaths2, rvPaths2, inPoint, facing] = createArc(inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
-            [curvePoints, fwPaths3, rvPaths3, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+            [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curvature1);
+            [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
         case 3
-            [curvePoints, fwPaths1, reversePaths1, inPoint, facing] = createArc(inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
-            [curvePoints, fwPaths2, reversePaths2, inPoint, facing] = createClothoid(inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
-            [curvePoints, fwPaths3, reversePaths3, inPoint, facing] = createArc(inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
+            [roadPoints, fwPaths1, reversePaths1, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+            [roadPoints, fwPaths2, reversePaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+            [roadPoints, fwPaths3, reversePaths3, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
     end
         
-        
-        % Set up first two corners
-        corners(1,:) = inPoint + [cos(facing + pi/2) sin(facing + pi/2) 0];
-        corners(2,:) = inPoint - [cos(facing + pi/2) sin(facing + pi/2) 0];
+    % get original & new direction vector
+    OGDirVec = [cos(oldFacing) sin(oldFacing) 0];
+    newDirVec = [cos(facing) sin(facing) 0];
 
-        % Adjust facing to new direction of road
-        facing = mod(facing - theta, 2*pi);
+    % set up road points with extra points at beginning and end to
+    % ensure direction is maintained at each
+    endPoint =  roadPoints(length(roadPoints),:) + newDirVec * 2;
+    roadPoints = [oldInPoint; roadPoints + OGDirVec * 2; endPoint];
         
-        dirVec = [cos(facing) sin(facing) 0];
-
-        % set up road points with extra points at beginning and end to
-        % ensure direction is maintained at each
-        roadPoints = [inPoint; curvePoints; curvePoints(4,:) + 2 * dirVec];
+    % Set up corners to make boundaries
+    corners(1,:) = oldInPoint + roadWidth/2*[cos(oldFacing+pi/2) sin(oldFacing+pi/2) 0];
+    corners(2,:) = oldInPoint - roadWidth/2*[cos(oldFacing+pi/2) sin(oldFacing+pi/2) 0];
+    corners(3,:) = endPoint + roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
+    corners(4,:) = endPoint - roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
         
-        % Set up last two corners
-        corners(3,:) = roadPoints(6,:) + [cos(facing + pi/2) sin(facing + pi/2) 0];
-        corners(4,:) = roadPoints(6,:) - [cos(facing + pi/2) sin(facing + pi/2) 0];
-        
-        % Update inPoint
-        inPoint = roadPoints(6,:);
-      
-        % Set up corners to make boundaries
-        corners(1,:) = inPoint + roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
-        corners(2,:) = inPoint - roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
-        corners(3,:) = newPoint + roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
-        corners(4,:) = newPoint - roadWidth/2*[cos(facing+pi/2) sin(facing+pi/2) 0];
-        
-        % Update inPoint
-        inPoint = newPoint;
+    % Update inPoint
+    inPoint = endPoint;
 
     % Creates a rectangle around the area occupied by the road piece
     botLeftCorner = [min([corners(1,1) corners(2,1) corners(3,1) corners(4,1)]) min([corners(1,2) corners(2,2) corners(3,2) corners(4,2)]) 0];
@@ -137,7 +133,8 @@
     
     % If conflicts with any other piece, will stop placing
     if ~checkAvailability(pieces, botLeftCorner, topRightCorner)
-        % return original variables
+        disp("@ Multi Lane Road : Could Not Place Piece");
+        % return to original variables
         inPoint = roadPoints(1,:);
         facing = oldFacing;
         return
