@@ -6,7 +6,7 @@ function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(r
 global LANE_WIDTH;
 
 % number of points desired in arc
-N = 4;
+N = 5;
 
 % create empty matrix for forward paths
 forwardPaths = zeros(lanes, N * 3);
@@ -52,7 +52,7 @@ end
 % rotation matrix
 R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
 
-for i=1:length(curvePoints)
+for i=1:size(curvePoints,1)
    curvePoints(i,:) = [[curvePoints(i,1) curvePoints(i,2)]*R 0] + inPoint; 
 end
 
@@ -69,7 +69,7 @@ inPoint = curvePoints(N,:);
 
 facing = mod(facing - length * curvature, 2 * pi);
 
-roadPoints = [roadPoints; curvePonts];
+roadPoints = [roadPoints; curvePoints];
 
 end
 

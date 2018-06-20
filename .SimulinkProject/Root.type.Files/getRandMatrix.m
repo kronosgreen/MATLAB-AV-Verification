@@ -38,9 +38,10 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         roadSlickness = randi(100) / 200;
         
-        curvature1 = 0.0666 * rand() - 0.0333;
+        % sets both curvatures, will currently both be positive
+        curvature1 = 0;% 0.0666 * rand() - 0.0333;
         
-        curvature2 = 0.0666 * rand() - 0.0333;
+        curvature2 = 0.02;% 0.0666 * rand() - 0.0333;
         
         newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit roadSlickness curvature1 curvature2];
         

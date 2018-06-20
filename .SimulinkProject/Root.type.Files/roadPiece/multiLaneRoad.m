@@ -94,29 +94,35 @@
     % Create Curved Multilane Road
     switch lineType
         case 0
-            [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane)
+            [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane);
         case 1
-            [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane)
+            [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curv);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curv, lanes, bidirectional, midTurnLane);
+            forwardPaths = [fwPaths1 fwPaths2 fwPaths3];
+            reversePaths = [rvPaths3 rvPaths2 rvPaths1];
         case 2
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curvature1);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+            forwardPaths = [fwPaths1 fwPaths2 fwPaths3];
+            reversePaths = [rvPaths3 rvPaths2 rvPaths1];
         case 3
-            [roadPoints, fwPaths1, reversePaths1, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
-            [roadPoints, fwPaths2, reversePaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
-            [roadPoints, fwPaths3, reversePaths3, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
+            [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+            [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
+            forwardPaths = [fwPaths1 fwPaths2 fwPaths3];
+            reversePaths = [rvPaths3 rvPaths2 rvPaths1];
     end
         
     % get original & new direction vector
-    OGDirVec = [cos(oldFacing) sin(oldFacing) 0];
-    newDirVec = [cos(facing) sin(facing) 0];
+    oldDirVec = [cos(oldFacing) sin(oldFacing) 0] * 2;
+    newDirVec = [cos(facing) sin(facing) 0] * 2;
 
     % set up road points with extra points at beginning and end to
     % ensure direction is maintained at each
-    endPoint =  roadPoints(length(roadPoints),:) + newDirVec * 2;
-    roadPoints = [oldInPoint; roadPoints + OGDirVec * 2; endPoint];
+    endPoint =  inPoint + newDirVec;
+    roadPoints = [oldInPoint; roadPoints + oldDirVec; endPoint];
         
     % Set up corners to make boundaries
     corners(1,:) = oldInPoint + roadWidth/2*[cos(oldFacing+pi/2) sin(oldFacing+pi/2) 0];
@@ -139,6 +145,11 @@
         facing = oldFacing;
         return
     end
+    
+    disp("curv 1 : " + curvature1 + " , curv 2 : " + curvature2);
+    disp("Line Type : " + lineType);
+    disp(roadPoints);
+    plot(roadPoints(:,1), roadPoints(:,2));
     
     % Create Road Piece in Scenario
     road(drScn, roadPoints, 'Lanes', ls);
