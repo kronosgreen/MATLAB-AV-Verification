@@ -12,7 +12,7 @@ N = 5;
 forwardPaths = zeros(lanes, N * 3);
 
 % radian space between start and end
-angle = linspace(0, abs(length * curvature), N);
+angle = linspace(0, length * curvature, N);
 
 % initial points for x and y of arc starting at 0, 0 and turning left with
 % a negative curvature and right with a positive curvature
@@ -47,7 +47,8 @@ else
     end
 end
 
-disp("About to rotate to " + facing);
+
+
 % rotation matrix
 R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
 
@@ -70,10 +71,8 @@ facing = mod(facing - length * curvature, 2 * pi);
 
 disp("Arc Stats");
 disp("Curvature: " + curvature);
-disp("Arc Angle: " + length*curvature);
 disp("inPoint:");
 disp(inPoint);
-disp("Facing: " + facing);
 disp("Points:");
 disp(curvePoints);
 

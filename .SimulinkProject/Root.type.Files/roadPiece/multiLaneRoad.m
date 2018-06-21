@@ -109,6 +109,7 @@
             reversePaths = [rvPaths3 rvPaths2 rvPaths1];
         case 3
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+            [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
             forwardPaths = [fwPaths1 fwPaths2 fwPaths3];
@@ -146,8 +147,6 @@
         return
     end
     
-    disp("curv 1 : " + curvature1 + " , curv 2 : " + curvature2);
-    disp("Line Type : " + lineType);
     disp(roadPoints);
     plot(roadPoints(:,1), roadPoints(:,2));
     

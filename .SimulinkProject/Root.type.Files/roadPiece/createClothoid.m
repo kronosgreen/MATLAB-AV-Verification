@@ -3,185 +3,225 @@ function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createCloth
 %end curvature, and a facing direction. Returns points for driving paths as
 %well
 
+% check if curvature is changing signs, negative to positive or positive to
+% negative
+% also check to see if they are the same, in which case, an arc will be
+% made instead
+if (startCurvature < 0 && endCurvature > 0) || (startCurvature > 0 && endCurvature < 0)
+    [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midTurnLane, startCurvature, 0);
+    [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midTurnLane, 0, endCurvature);
+    forwardPaths = [fwPaths1 fwPaths2];
+    reversePaths = [rvPaths2 rvPaths1];
+    return;
+elseif startCurvature == endCurvature
+    [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, startCurvature, lanes, bidirectional, midTurnLane);
+    return;
+end
+
 % get global lane width
 global LANE_WIDTH;
-
-% Create empty matrices for lane paths
-forwardPaths = zeros(lanes, 18);
 
 % flip correction for when a left turning road has its points
 % flipped, used only for paths on road
 fc = (endCurvature < 0);
 
-%
-% Set up Clothoid Curve based on given start and end curvature
-%
+% how many points make up the clothoid, including the starting point
+N = 5;
 
-% how many points make up the clothoid, excluding the starting point
-N = 4;
+% rate of change of curvature, is the constant used to determine the
+% clothoid, as it remains at the same rate throughout the curve
+d_k = abs(endCurvature - startCurvature) / length;
 
+% starting length
+length_start = min(abs(startCurvature), abs(endCurvature)) / d_k;
 
-% First Point
+% length increments
+length_iter = length / (N-1);
 
-% End Curvature
-k_c = abs(endCurvature - startCurvature) / 3;
-
-% End circular arc (Radius) - 1 / curvature
-R_c = 1 / k_c;
-
-% Arc length or length of road
-s_c = length / 3;
-
-% a - scaling ratio to improve robustness while maintaining geometric
-% equivalence to Euler curve
-a = sqrt( s_c / (pi * k_c) );
-
-% theta - radians by which the line turned
-theta = (s_c/a)^2;
-
-% set up first point of the curve at a third of the road length
-x1 = pi * a * fresnels(s_c/a)
-y1 = pi * a * fresnelc(s_c/a)
-
-% set up lane paths up to this point & establish reverse paths 
+% set up empty matrices for paths
+forwardPaths = zeros(lanes, N*3);
 if bidirectional
-    reversePaths = zeros(lanes, 18);
-    for i=1:lanes
-        startPoint = [-(fc*2-1)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
-        firstCurvePoint = [x1 y1 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-        forwardPaths(i,1:6) = [startPoint, firstCurvePoint];
-
-        startPoint = [(fc*2-1)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0 0];
-        firstCurvePoint = [x1 y1 0] + [cos(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-        reversePaths(i,7:12) = [firstCurvePoint, startPoint];
-    end
+    reversePaths = zeros(lanes, N*3);
 else
     reversePaths = 0;
-    for i=1:lanes
-        startPoint = [(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0 0];
-        firstCurvePoint = [x1 y1 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
-        forwardPaths(i,1:6) = [startPoint, firstCurvePoint];
-    end
 end
 
-% Second Point
+% set up empty matrix for points
+clothoidPoints = zeros(N, 3);
 
-% Change in Curvature
-k_c = 2 * abs(endCurvature - startCurvature) / 3;
+% if either point is zero, can't use equation, so must calculate 0 points
+% separately
+if length_start == 0
+    clothoidPoints(1,:) = [0 0 0];
+    if bidirectional
+        for j=1:lanes
+            startPoint = [-(fc*2-1)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) 0 0];
+            forwardPaths(j,1:3) = startPoint;
 
-% End circular arc (Radius) - 1 / curvature
-R_c = 1 / k_c;
-
-% Arc length or length of road
-s_c = 2 * length / 3;
-
-% a - scaling ratio to improve robustness while maintaining geometric
-% equivalence to Euler curve
-a = sqrt( s_c / (pi * k_c) );
-
-% theta - radians by which the line turned
-theta = (s_c/a)^2;
-
-% set up mid-point at half the road length
-x2 = a * fresnels(s_c/a);
-y2 = a * fresnelc(s_c/a);
-
-% add second curve point to lane paths
-if bidirectional
-    for i=1:lanes
-        forwardPaths(i,7:9) = [x2 y2 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-        reversePaths(i,4:6) = [x2 y2 0] + [cos(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+            startPoint = [(fc*2-1)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) 0 0];
+            reversePaths(j,3*N-2:3*N) = startPoint;
+        end
+    else
+        for j=1:lanes
+            startPoint = [(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) 0 0];
+            forwardPaths(j,1:3) = startPoint;
+        end
     end
+    
+    % skipping first point since we don't need to calculate 0
+    p_start = 2;
 else
-    for i=1:lanes
-        forwardPaths(i,7:9) = [x2 y2 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+    % calculate every point
+    p_start = 1;
+end
+
+%% clothoid points calculator
+
+for i=p_start:N
+    
+    % curvature
+    k_c = min(abs(startCurvature),abs(endCurvature)) + (i - 1) * length_iter * d_k;
+    
+    % End arc radius
+    R_c = 1 / k_c;
+    
+    % End length
+    s_c = length_start + (i - 1) * length_iter;
+    
+    % scaling factor
+    a = sqrt(2 * R_c * s_c);
+    
+    % get point on clothoid 
+    x = a * fresnels(s_c/a);
+    y = a * fresnelc(s_c/a);
+    
+    clothoidPoints(i,:) = [x y 0];
+    
+    % change in facing tangent
+    theta = (s_c/a)^2;
+    
+    % set up lane paths up to this point & establish reverse paths 
+    if bidirectional
+        for j=1:lanes
+            lanePoint = [x y 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) 0];
+            forwardPaths(j,3*i-2:3*i) = lanePoint;
+
+            lanePoint = [x y 0] + [cos(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) sin(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) 0];
+            reversePaths(j,3*(N-i)+1:3*(N-i+1)) = lanePoint;
+        end
+    else
+        for j=1:lanes
+            lanePoint = [x y 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) 0];
+            forwardPaths(j,3*i-2:3*i) = lanePoint;
+        end
+    end
+    
+end
+
+%% Adjust points back to zero if not starting at zero
+if length_start ~= 0
+    for i=1:N
+        clothoidPoints(i,:) = clothoidPoints(i,:) - clothoidPoints(1,:);
+        for j=1:lanes
+            forwardPaths(j,3*i-2:3*i) =  forwardPaths(j,3*i-2:3*i) - clothoidPoints(1,:);
+            if bidirectional
+                reversePaths(j,3*i-2:3*i) = reversePaths(j,3*i-2:3*i) - clothoidPoints(1,:);
+            end
+        end
     end
 end
 
-%Third Point
-
-% End Curvature
-k_c = abs(endCurvature - startCurvature);
-
-% End circular arc (Radius) - 1 / curvature
-R_c = 1 / k_c;
-
-% Arc length or length of road
-s_c = length;
-
-% a - scaling ratio to improve robustness while maintaining geometric
-% equivalence to Euler curve
-a = sqrt( s_c / (pi * (endCurvature - startCurvature)) );
-
-% theta - radians by which the line turned
-theta = (s_c/a)^2;
-
-% set up final point of curve at full length
-x3 = a * fresnels(s_c/a);
-y3 = a * fresnelc(s_c/a);
-
-% add last curve points to the lane paths
-if bidirectional
-    for i=1:lanes
-        lastCurvePoint = [x3 y3 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-        forwardPaths(i,10:12) = [lastCurvePoint];
-
-        lastCurvePoint = [x3 y3 0] + [cos(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
-        reversePaths(i,1:3) = [lastCurvePoint];
+%% Adjust points for a decreasing curvature
+% have to flip over the x axis, shift back to 0 using the last point, and
+% rotate 90 degrees clockwise
+if abs(startCurvature) > abs(endCurvature)
+    
+    R = [cos(pi/2) -sin(pi/2); sin(pi/2) cos(pi/2)];
+    clothoidPoints(:,2) = -clothoidPoints(:,2);
+    clothoidPoints(:,1:2) = [(clothoidPoints(:,1)-clothoidPoints(N,1)) (clothoidPoints(:,2)-clothoidPoints(N,2))];
+    for i=1:N
+        clothoidPoints(i,1:2) = [clothoidPoints(i,1) clothoidPoints(i,2)]*R;
     end
-else
-    for i=1:lanes
-        lastCurvePoint = [x3 y3 0] + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
-        forwardPaths(i,10:12) = [lastCurvePoint];
+    % flip all the coordinates, since they are all now reversed
+    clothoidPoints = flipud(clothoidPoints);
+
+    tempFwd = zeros(lanes,N*3);
+    tempRv = zeros(lanes,N*3);
+    for k=1:3:3*N
+        tempFwd(:,k:k+2) = forwardPaths(:,3*N-k-1:3*N-k+1);
+        if bidirectional
+            tempRv(:,k:k+2) = reversePaths(:,3*N-k-1:3*N-k+1);
+        end
+    end
+    forwardPaths = tempFwd;
+    if bidirectional
+        reversePaths = tempRv;
     end
 end
 
+%% adjust points for negative direction, flip over y axis
+if startCurvature < 0 || endCurvature < 0
+    theta = -1 * theta;
+    clothoidPoints(:,1) = -clothoidPoints(:,1);
+    forwardPaths(:,1:3:3*N) = -forwardPaths(:,1:3:3*N);
+    reversePaths(:,1:3:3*N) = -reversePaths(:,1:3:3*N);
+end
+
+%% Rotate points to facing and adjust to inPoint
 % Rotate path points and road points to orient to facing
 % Flip over y axis if necessary (negative curvature)
 % Add inPoint to place it in the correct location
 R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
-
-if endCurvature >= 0
-    curvePoints = [0 0 0; [x1 y1]*R 0; [x2 y2]*R 0; [x3 y3]*R 0] + inPoint
-    for i=1:lanes
-        for n=1:3:size(forwardPaths,2)
-            forwardPaths(i,n:n+2) = [[forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
-            if bidirectional
-                reversePaths(i,n:n+2) = [[reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
-            end
-        end
-    end
-else
-
-    curvePoints = [0 0 0; [-x1 y1]*R 0; [-x2 y2]*R 0; [-x3 y3]*R 0] + inPoint;
-    theta = -1 * theta;
-    for i=1:lanes
-        for n=1:3:size(forwardPaths,2)
-            if bidirectional
-                reversePaths(i,n:n+2) = [[-reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
-                forwardPaths(i,n:n+2) = [[-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
-            else
-                if n <= 4
-                    % don't flip first two points, for some reason
-                    % get flipped twice (one-way road)
-                    forwardPaths(i,n:n+2) = [ [forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
-                else
-                    forwardPaths(i,n:n+2) = [ [-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
-                end
-            end
-        end
-    end
-
+disp("Facing (clothoid) : " + facing);
+for i=1:N
+	clothoidPoints(i,:) = [[clothoidPoints(i,1) clothoidPoints(i,2)]*R clothoidPoints(i,3)] + inPoint;
 end
 
+for i=1:lanes
+    for n=1:3:3*N
+        forwardPaths(i,n:n+2) = [[forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+        if bidirectional
+            reversePaths(i,n:n+2) = [[reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+        end
+    end
+end
+
+% for i=1:lanes
+%     for n=1:3:size(forwardPaths,2)
+%         if bidirectional
+%             reversePaths(i,n:n+2) = [[-reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+%             forwardPaths(i,n:n+2) = [[-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+%         else
+%             if n <= 4
+%                 % don't flip first two points, for some reason get flipped
+%                 % twice (one-way road)
+%                 forwardPaths(i,n:n+2) = [ [forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+%             else
+%                 forwardPaths(i,n:n+2) = [ [-forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+%             end
+%         end
+%     end
+% end
+
+%% update values
+
 % update inPoint
-inPoint = curvePoints(size(curvePoints,1),:);
+inPoint = clothoidPoints(N,:);
 
 % update facing
 facing = mod(facing - theta, 2*pi);
 
+disp("Clothoid Stats");
+disp("Curvatures: " + startCurvature + " to " + endCurvature);
+disp("inPoint:");
+disp(inPoint);
+disp("Updated Facing: " + facing);
+disp("Points:");
+disp(clothoidPoints);
+disp("------------------");
+
 %update road points with new curve points
-roadPoints = [roadPoints; curvePoints];
+roadPoints = [roadPoints; clothoidPoints];
 
 end
 
