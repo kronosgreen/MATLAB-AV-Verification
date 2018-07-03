@@ -22,19 +22,24 @@ y = sin(angle) / abs(curvature);
 % set up initial curve points
 curvePoints = [x.' y.' zeros(N, 1)];
 
+
+%% set up lane paths
 % flip correction for when a left turning road has its points
 % flipped, used only for paths on road
-fc = (curvature < 0);
-
-% set up lane paths
 if bidirectional
     reversePaths = zeros(lanes, N*3);
     for j=1:N
         theta = -(length * curvature) * (j-1)/N;
         for i=1:lanes
-            forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+            forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
+                [cos(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
+                sin(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
+                0];
             
-            reversePaths(i,3*j-2:3*j) = curvePoints(j,:) + [cos(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) sin(fc * pi +pi-theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) 0];
+            reversePaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
+                [cos(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
+                sin(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
+                0];
         end
     end
 else
@@ -42,41 +47,36 @@ else
     for j=1:N
         theta = -(length * curvature) * (j-1)/N;
         for i=1:lanes
-            forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + [cos(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) sin(fc * pi -theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) 0];
+            forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
+                [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) ...
+                sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) ...
+                0];
         end
     end
 end
 
-disp("About to rotate to " + facing);
+%% Rotate to facing
 % rotation matrix
 R = [cos(facing - pi/2) sin(facing - pi/2); -sin(facing - pi/2) cos(facing - pi/2)];
 
 for i=1:N
-   curvePoints(i,:) = [[curvePoints(i,1) curvePoints(i,2)]*R 0] + inPoint; 
-end
-
-for i=1:lanes
-    for n=1:3:N*3
-        forwardPaths(i,n:n+2) = [[forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+   curvePoints(i,:) = [curvePoints(i,1:2)*R curvePoints(i,3)] + inPoint;
+   for j=1:lanes
+        forwardPaths(j,i*3-2:i*3) = [forwardPaths(j,i*3-2:i*3-1)*R forwardPaths(j,i*3)] + inPoint;
         if bidirectional
-            reversePaths(i,n:n+2) = [[reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+            reversePaths(j,i*3-2:i*3) = [reversePaths(j,i*3-2:i*3-1)*R reversePaths(j,i*3)] + inPoint;
         end
-    end
+   end
 end
 
+%% update values
+% update inPoint
 inPoint = curvePoints(N,:);
 
+% update facing
 facing = mod(facing - length * curvature, 2 * pi);
 
-disp("Arc Stats");
-disp("Curvature: " + curvature);
-disp("Arc Angle: " + length*curvature);
-disp("inPoint:");
-disp(inPoint);
-disp("Facing: " + facing);
-disp("Points:");
-disp(curvePoints);
-
+% update roadPoints
 roadPoints = [roadPoints; curvePoints];
 
 end

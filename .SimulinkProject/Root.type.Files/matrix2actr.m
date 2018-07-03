@@ -7,10 +7,11 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex)
     [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, 1, 1, 1, 0, [1 1 1], 1, 0);           
     egoCar.ActorID = 1;
-
+    
+    disp(ep);
     trajectory(egoCar,ep,egoSpeeds);
     
-    vehicles = [egoCar];
+    vehicles = egoCar;
     
     % newActor = [actorType pathType carType movSpeed dimensions startLoc forward];
     % actors = ["Other Car", "Tree", "Building", "Stop Sign"];
