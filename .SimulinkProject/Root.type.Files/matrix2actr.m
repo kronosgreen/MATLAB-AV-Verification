@@ -8,7 +8,6 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, 1, 1, 1, 0, [1 1 1], 1, 0);           
     egoCar.ActorID = 1;
     
-    disp(ep);
     trajectory(egoCar,ep,egoSpeeds);
     
     vehicles = egoCar;

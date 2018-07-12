@@ -1,4 +1,4 @@
-  function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature1, curvature2)
+  function [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadStruct)
     
     %MULTILANEROAD 
     %   Set up road piece with n-lanes based on the lanes parameter. If
@@ -6,6 +6,15 @@
     %   If midTurnLane is true, it will include a turn lane between the two 
     %   directions as well
     disp("Starting Multi-Lane Road");
+    
+    % set up variables from struct
+    length = roadStruct(2);
+    lanes = roadStruct(3);
+    bidirectional = roadStruct(4);
+    midTurnLane = roadStruct(5);
+    speedLimit = roadStruct(6);
+    curvature1 = roadStruct(8);
+    curvature2 = roadStruct(9);
     
     % Set up direction the road starts off going in by taking the 
     % facing parameter in radians and creating a vector
@@ -83,10 +92,8 @@
     % determining whether the road is clothoid-arc-clothoid or the reverse
     % of that is currently done arbitrarily; most likely will add parameter
     % later
-    elseif mod((curvature1 / curvature2)*1000,2) == 0
-        lineType = 2;
     else
-        lineType = 3;
+        lineType = 1 + randi(2);
     end
     
     % set up empty matrix for road points
@@ -126,15 +133,16 @@
                 createClothoid(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
                 createArc(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
-            disp(fwPaths1(1,:));
-            disp(fwPaths2(1,:));
-            disp(fwPaths3(1,:));
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     end
+    disp("Curvatures");
+    disp(curvature1 + " , " + curvature2);
     hold on;
     plot(roadPoints(:,1),roadPoints(:,2));
-    plot(forwardPaths(1,1:3:size(forwardPaths,2)),forwardPaths(1,2:3:size(forwardPaths,2)));
+    plot(fwPaths1(1,1:3:size(fwPaths1,2)),fwPaths1(1,2:3:size(fwPaths1,2)));
+    plot(fwPaths2(1,1:3:size(fwPaths2,2)),fwPaths2(1,2:3:size(fwPaths2,2)));
+    plot(fwPaths3(1,1:3:size(fwPaths3,2)),fwPaths3(1,2:3:size(fwPaths3,2)));
         
     % get original & new direction vector
     oldDirVec = [cos(oldFacing) sin(oldFacing) 0] * 2;
@@ -175,9 +183,10 @@
         0];
     
     % If conflicts with any other piece, will stop placing
-    if ~checkAvailability(pieces, botLeftCorner, topRightCorner)
+    if ~checkAvailability(pieces, botLeftCorner, topRightCorner, [oldInPoint(1:2);inPoint(1:2)])
         disp("@ Multi Lane Road : Could Not Place Piece");
         % return to original variables
+        pieces = pieces(1:size(pieces,1)-1);
         inPoint = roadPoints(1,:);
         facing = oldFacing;
         return

@@ -41,7 +41,7 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
         switch roadMatrix(i,1)
             case 1
                 %multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
-                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, 3), roadMatrix(i, 2), roadMatrix(i, 4), roadMatrix(i, 5), roadMatrix(i, 6), roadMatrix(i,7), roadMatrix(i,8), roadMatrix(i,9));
+                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
             case 2
                 %roundabout
 

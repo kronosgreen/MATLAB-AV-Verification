@@ -1,4 +1,4 @@
-function available = checkAvailability(pieces, botLeftCorner, topRightCorner)
+function available = checkAvailability(pieces, botLeftCorner, topRightCorner, endPoints)
 
     %CHECKAVAILABILITY 
     %   Check to see if the next piece will not cause conflicts such as it
@@ -8,12 +8,32 @@ function available = checkAvailability(pieces, botLeftCorner, topRightCorner)
 
     available = true;
     
-    roadArea = [botLeftCorner; topRightCorner];
-            
-    for i = 2:length(pieces)-1
-       pRange = pieces(i).range;
-       if roadArea(1,1) > pRange(2,1) && roadArea(1,2) > pRange(2,2) && roadArea(2,1) < pRange(1,1) && roadArea(2,1) < pRange(2,1)
+    if length(pieces) <= 3
+        return
+    end
+    
+    % left, right, top, and bottom values of new piece
+    roadL = botLeftCorner(1);
+    roadR = topRightCorner(1);
+    roadT = topRightCorner(2);
+    roadB = botLeftCorner(2);
+    
+    if pdist(endPoints, 'euclidean') < 35
+        disp("Too close to end");
+        available = false;
+        return
+    end
+    
+    for i = 2:length(pieces)-2
+       oldL = pieces(i).range(1,1);
+       oldR = pieces(i).range(2,1);
+       oldT = pieces(i).range(2,2);
+       oldB = pieces(i).range(1,2);
+       if roadR >= oldL && roadL <= oldR && roadT >= oldB && roadB <= oldT
+           disp("L,R,T,B : " + oldL + ", " + oldR + ", " + oldT + ", " + oldB);
+           disp("failed : " + roadL + ", " + roadR + ", " + roadT + ", " + roadB);
            available = false;
+           return
        end
     end 
      

@@ -28,7 +28,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % Currently only multilane road is implemented
         roadPiece = 1;
         
-        roadLength = randi(14) * 5 + 30;
+        roadLength = randi(12) * 5 + 40;
         
         lanes = randi(5);
         
@@ -36,14 +36,28 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         
         speedLimit = randi(11) * 2.2352 + 11.176;
         
-        roadSlickness = randi(100) / 200;
+        % Create 4 way intersection pattern
+        % Starting at the top going clockwise, 0 is bidirectional
+        % 1 is one-way going out, 2 is one-way going in
+        intersectionValid = 0;
+        while ~intersectionValid
+            intersectionPattern = string(dec2base(randi(81),3));
+            if length(intersectionPattern) < 4
+                intersectionPattern = ' ' * (4 - length(intersectionPattern)) + intersectionPattern;
+            end
+            if sum(char(intersectionPattern) == '1') < 3 || sum(char(intersectionPattern) == '2') < 3
+                intersectionValid = 1;
+            else
+                
+            end
+        end
         
         % sets both curvatures, will currently both be positive
-        curvature1 = 0.0666 * rand() - 0.0333;
+        curvature1 = 0.060 * rand() - 0.030;
         
-        curvature2 = 0.0666 * rand() - 0.0333;
+        curvature2 = 0.060 * rand() - 0.030;
         
-        newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit roadSlickness curvature1 curvature2];
+        newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit intersectionPattern curvature1 curvature2];
         
         roadMatrix(i,:) = newRoad;
     end

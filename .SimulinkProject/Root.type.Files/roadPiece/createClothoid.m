@@ -10,8 +10,8 @@ function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createCloth
 if (startCurvature < 0 && endCurvature > 0) || (startCurvature > 0 && endCurvature < 0)
     [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midTurnLane, startCurvature, 0);
     [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midTurnLane, 0, endCurvature);
-    forwardPaths = [fwPaths1 fwPaths2];
-    reversePaths = [rvPaths2 rvPaths1];
+    forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2];
+    reversePaths = [rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     return;
 elseif startCurvature == endCurvature
     [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, startCurvature, lanes, bidirectional, midTurnLane);
@@ -26,7 +26,7 @@ global LANE_WIDTH;
 fc = (endCurvature < 0);
 
 % how many points make up the clothoid, including the starting point
-N = 5;
+N = 6;
 
 % array to store thetas, or change in direction at each point
 thetas = zeros(1,N);
@@ -52,17 +52,9 @@ end
 % set up empty matrix for points
 clothoidPoints = zeros(N, 3);
 
-% if either point is zero, can't use equation, so must calculate 0 points
-% separately
-if length_start == 0
-    clothoidPoints(1,:) = [0 0 0];
-    
-    % skipping first point since we don't need to calculate 0
-    p_start = 2;
-else
-    % calculate every point
-    p_start = 1;
-end
+% if either point is zero, can't use equation, so skip first point
+if length_start == 0, p_start = 2; 
+else, p_start = 1; end
 
 %% clothoid points calculator
 
@@ -92,12 +84,20 @@ for i=p_start:N
     thetas(i) = theta;
     
 end
-
+disp(thetas);
 %% Adjust points back to zero if not starting at zero
 if length_start ~= 0
+    shiftPoint = clothoidPoints(1,1:2);
+    shiftTheta = thetas(1);
+    clothoidPoints(:,1:2) = clothoidPoints(:,1:2) - shiftPoint;
+    R = [cos(shiftTheta) sin(shiftTheta); -sin(shiftTheta) cos(shiftTheta)];
     for i=1:N
-        clothoidPoints(i,:) = clothoidPoints(i,:) - clothoidPoints(1,:);
+        clothoidPoints(i,1:2) = clothoidPoints(i,1:2)*R;
+        thetas(i) = thetas(i) - shiftTheta;
     end
+    shifted = 1;
+else
+    shifted = 0;
 end
 
 %% Adjust points for a decreasing curvature
@@ -107,7 +107,7 @@ if abs(startCurvature) > abs(endCurvature)
     % used for a turn correction
     flipped = 1;
     
-    R = [cos(pi/2) -sin(pi/2); sin(pi/2) cos(pi/2)];
+    R = [cos(theta) -sin(theta); sin(theta) cos(theta)];
     
     clothoidPoints(:,2) = -clothoidPoints(:,2);
     clothoidPoints(:,1:2) = [(clothoidPoints(:,1)-clothoidPoints(N,1)) (clothoidPoints(:,2)-clothoidPoints(N,2))];
@@ -116,13 +116,24 @@ if abs(startCurvature) > abs(endCurvature)
     end
     % flip all the coordinates, since they are all now reversed
     clothoidPoints = flipud(clothoidPoints);
+    
 else
     flipped = 0;
 end
 
+%% If shifted, update theta
+disp("THETAS");
+disp(thetas);
+disp("THETA: " + theta);
+if shifted
+    theta = theta - thetas(N);
+    disp("SHIFT THETA: " + shiftTheta); 
+end
+disp("THETA: " + theta);
 %% adjust points for negative direction, flip over y axis
 if startCurvature < 0 || endCurvature < 0
     theta = -1 * theta;
+    if shifted, thetas(:) = -thetas(:) + pi/2; end
     clothoidPoints(:,1) = -clothoidPoints(:,1);
 end
 
@@ -131,7 +142,7 @@ end
 % if flipped, update angles
 if flipped
     flpThetas = zeros(1,N);
-    startFacing = pi/2 - thetas(N);
+    startFacing = pi - thetas(N);
     for i=1:N
         flpThetas(i) = startFacing + thetas(1,N) - thetas(1,N-i+1);
     end
@@ -166,25 +177,34 @@ end
 
 %% Rotate points to facing and adjust to inPoint
 % Rotate path points and road points to orient to facing
-% Flip over y axis if necessary (negative curvature)
 % Add inPoint to place it in the correct location
-R = [cos(facing - pi/2 - flipped*(pi/2+theta)) sin(facing - pi/2 - flipped*(pi/2+theta)); -sin(facing - pi/2 - flipped*(pi/2+theta)) cos(facing - pi/2 - flipped*(pi/2+theta))];
+
+rTheta = facing - pi/2;
+
+R = [cos(rTheta) sin(rTheta); -sin(rTheta) cos(rTheta)];
 
 for i=1:N
-	clothoidPoints(i,:) = [[clothoidPoints(i,1) clothoidPoints(i,2)]*R clothoidPoints(i,3)] + inPoint;
+	clothoidPoints(i,:) = [clothoidPoints(i,1:2)*R clothoidPoints(i,3)] + inPoint;
 end
 
 for i=1:lanes
     for n=1:3:3*N
-        forwardPaths(i,n:n+2) = [[forwardPaths(i,n) forwardPaths(i,n+1)]*R forwardPaths(i,n+2)] + inPoint;
+        forwardPaths(i,n:n+2) = [forwardPaths(i,n:n+1)*R forwardPaths(i,n+2)] + inPoint;
         if bidirectional
-            reversePaths(i,n:n+2) = [[reversePaths(i,n) reversePaths(i,n+1)]*R reversePaths(i,n+2)] + inPoint;
+            reversePaths(i,n:n+2) = [reversePaths(i,n:n+1)*R reversePaths(i,n+2)] + inPoint;
         end
     end
 end
 
 %% update values
 
+if shifted && flipped
+    disp("SHIFTED & FLIPPED");
+elseif shifted
+    disp("SHIFTED");
+else
+    disp("FLIPPED");
+end
 % update inPoint
 inPoint = clothoidPoints(N,:);
 

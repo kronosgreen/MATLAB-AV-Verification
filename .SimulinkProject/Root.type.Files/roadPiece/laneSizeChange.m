@@ -231,21 +231,18 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         
     end % end for loop making transition piece
     
-    % set up bounding box
-    if facing >= 0 && facing < pi/2
-        botLeftCorner = inPoint + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + transitionSize*dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    elseif facing >= pi/2 && facing < pi
-        botLeftCorner = inPoint + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + transitionSize*dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    elseif facing >= pi && facing < 3*pi/2
-        botLeftCorner = inPoint + transitionSize*dirVec + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    else
-        botLeftCorner = inPoint + transitionSize*dirVec + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    end
-
+    % set up bounding box, front left/right, rear left/right corners
+    fLeft = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
+    fRight = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    rLeft = inPoint + transitionSize * dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
+    rRight = inPoint + transitionSize * dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    
+    botLeftCorner = [min([fLeft(1), fRight(1), rLeft(1), rRight(1)]) ...
+        min([fLeft(2), fRight(2), rLeft(2), rRight(2)]) ...
+        0];
+    topRightCorner = [max([fLeft(1), fRight(1), rLeft(1), ...
+        rRight(1)]) max([fLeft(2), fRight(2), rLeft(2), rRight(2)]) ...
+        0];
     
     rPiece.type = 0;
     rPiece.lineType = 0;
