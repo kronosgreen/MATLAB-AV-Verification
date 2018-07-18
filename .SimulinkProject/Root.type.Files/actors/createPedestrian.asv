@@ -17,12 +17,8 @@ switch(pieces(posIndex).type)
  
     % Multilane Road
     case 1
-        
-        % Part of road crossing where 0 < localPos <= 1
-        localPos = randi(100)/100;
-        % get curvature of road
-        curv = ( pieces(posIndex).curvature2 - pieces(posIndex).curvature1 ) * localPos + pieces(posIndex).curvature1;
-        
+
+        curv = pieces(posIndex).curvature2 - pieces(posIndex.cuvature1);
         if curv ~= 0
             
             % Curved Road
@@ -30,8 +26,11 @@ switch(pieces(posIndex).type)
             % First point of road is where clothoid curve begins
             inPoint = pieces(posIndex).roadPoints(2,:);
             
+            % Part of road crossing where 0 < localPos <= 1
+            localPos = randi(100)/100;
+            
             % End Curvature
-            k_c = curv;
+            k_c = abs(pieces(posIndex).curvature) * localPos;
 
             % End circular arc (Radius) - 1 / curvature
             R_c = 1 / k_c;
@@ -78,6 +77,7 @@ switch(pieces(posIndex).type)
             
             % Get point on the right side of the road at the middle
             startPoint = midPoint + pieces(posIndex).width/2 * [cos(facingDir - pi/2) sin(facingDir - pi/2) 0];
+            
             
         end
                 

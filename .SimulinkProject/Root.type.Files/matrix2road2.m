@@ -30,7 +30,6 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = 0;
-    rPiece.slickness = 0;
     
     pieces = rPiece;
     

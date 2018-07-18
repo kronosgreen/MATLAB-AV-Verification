@@ -74,7 +74,7 @@
     % Checks to see if this isn't the first piece placed
     if pieces(size(pieces, 1)).lanes ~= 0
         [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, ...
-            roadWidth, pieces, dirVec, lanes, bidirectional, midTurnLane, speedLimit, roadSlickness);
+            roadWidth, pieces, dirVec, roadStruct);
     end
     
     % Set up matrix to store corner points
@@ -136,14 +136,7 @@
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     end
-    disp("Curvatures");
-    disp(curvature1 + " , " + curvature2);
-    hold on;
-    plot(roadPoints(:,1),roadPoints(:,2));
-    plot(fwPaths1(1,1:3:size(fwPaths1,2)),fwPaths1(1,2:3:size(fwPaths1,2)));
-    plot(fwPaths2(1,1:3:size(fwPaths2,2)),fwPaths2(1,2:3:size(fwPaths2,2)));
-    plot(fwPaths3(1,1:3:size(fwPaths3,2)),fwPaths3(1,2:3:size(fwPaths3,2)));
-        
+   
     % get original & new direction vector
     oldDirVec = [cos(oldFacing) sin(oldFacing) 0] * 2;
     newDirVec = [cos(facing) sin(facing) 0] * 2;
@@ -183,7 +176,7 @@
         0];
     
     % If conflicts with any other piece, will stop placing
-    if ~checkAvailability(pieces, botLeftCorner, topRightCorner, [oldInPoint(1:2);inPoint(1:2)])
+    if ~checkAvailability(pieces, botLeftCorner, topRightCorner, [oldInPoint(1:2);inPoint(1:2)], facing, length)
         disp("@ Multi Lane Road : Could Not Place Piece");
         % return to original variables
         pieces = pieces(1:size(pieces,1)-1);
@@ -191,7 +184,10 @@
         facing = oldFacing;
         return
     end
-    
+    hold on;
+    plot(roadPoints(:,1),roadPoints(:,2));
+    plot(forwardPaths(1,1:3:size(forwardPaths, 2)),forwardPaths(1,2:3:size(forwardPaths,2)));
+    if bidirectional, plot(reversePaths(1,1:3:size(forwardPaths, 2)),reversePaths(1,2:3:size(forwardPaths,2))); end
     % Create Road Piece in Scenario
     road(drScn, roadPoints, 'Lanes', ls);
     
@@ -215,7 +211,6 @@
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = speedLimit;
-    rPiece.slickness = roadSlickness;
     
     pieces = [pieces; rPiece];
 

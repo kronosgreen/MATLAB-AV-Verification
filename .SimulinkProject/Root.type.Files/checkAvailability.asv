@@ -47,9 +47,9 @@ function available = checkAvailability(pieces, botLeftCorner, topRightCorner, en
            available = false;
            return
        end
-       if testR >= oldL && testL <= oldR && testT >= oldB && testB <= oldT
-           disp("L,R,T,B : " + oldL + ", " + oldR + ", " + oldT + ", " + oldB);
-           disp("Test Piece : " + testL + ", " + testR + ", " + testT + ", " + testB);
+       if roadR >= oldL && roadL <= oldR && roadT >= oldB && roadB <= oldT
+           disp("L,R,T,B : " + testL + ", " + testR + ", " + testT + ", " + testB);
+           disp("Test Piece : " + roadL + ", " + roadR + ", " + roadT + ", " + roadB);
            available = false;
            return
        end

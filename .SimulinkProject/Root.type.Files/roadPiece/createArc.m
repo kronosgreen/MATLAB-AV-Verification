@@ -1,7 +1,7 @@
 function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature, lanes, bidirectional, midTurnLane)
 %CREATEARC create an arc road piece, or a piece with a constant curvature,
 % otherwise part of a circle
-
+disp("ARC");
 % get lane width from global
 global LANE_WIDTH;
 
@@ -24,21 +24,21 @@ curvePoints = [x.' y.' zeros(N, 1)];
 
 
 %% set up lane paths
-% flip correction for when a left turning road has its points
-% flipped, used only for paths on road
+% lane paths get set up to right and left of arc according to the arc angle
+% which is the product of the length and curvature
 if bidirectional
     reversePaths = zeros(lanes, N*3);
     for j=1:N
-        theta = -(length * curvature) * (j-1)/N;
+        theta = -(length*curvature) * (j-1) / (N-1);
         for i=1:lanes
             forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
                 [cos(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
                 sin(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
                 0];
             
-            reversePaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
-                [cos(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
-                sin(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
+            reversePaths(i,(N-j+1)*3-2:3*(N-j+1)) = curvePoints(j,:) + ...
+                [cos(pi+theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
+                sin(pi+theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
                 0];
         end
     end

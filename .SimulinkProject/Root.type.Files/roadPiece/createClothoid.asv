@@ -23,7 +23,9 @@ end
 % get global lane width
 global LANE_WIDTH;
 
-disp("CURVATURE FROM " + startCurvature + " TO " + endCurvature);
+% flip correction for when a left turning road has its points
+% flipped, used only for paths on road
+fc = (endCurvature < 0);
 
 % how many points make up the clothoid, including the starting point
 N = 6;
@@ -86,29 +88,34 @@ for i=p_start:N
 end
 
 disp("BEGINNING");
+disp(theta);
 disp(thetas);
 
 %% Adjust points back to zero if not starting at zero
 if length_start ~= 0
     shiftPoint = clothoidPoints(1,1:2);
     shiftTheta = thetas(1);
-    
     clothoidPoints(:,1:2) = clothoidPoints(:,1:2) - shiftPoint;
     R = [cos(shiftTheta) sin(shiftTheta); -sin(shiftTheta) cos(shiftTheta)];
-    
     for i=1:N
         clothoidPoints(i,1:2) = clothoidPoints(i,1:2)*R;
         thetas(i) = thetas(i) - shiftTheta;
     end
+    shifted = 1;
     
-    disp("SHIFTED");
+    disp("SHIFTED 1");
+    disp(theta);
     disp(thetas);
+else
+    shifted = 0;
 end
 
 %% Adjust points for a decreasing curvature
 % have to flip over the x axis, shift back to 0 using the last point, and
 % rotate 90 degrees clockwise
 if abs(startCurvature) > abs(endCurvature)
+    % used for a turn correction
+    flipped = 1;
     
     R = [cos(theta) -sin(theta); sin(theta) cos(theta)];
     
@@ -126,19 +133,35 @@ if abs(startCurvature) > abs(endCurvature)
         flpThetas(i) = thetas(1,N) - thetas(1,N-i+1);
     end
     thetas = flpThetas;
-    
     disp("FLIPPED");
+    disp(theta);
     disp(thetas);
     
+else
+    flipped = 0;
+end
+
+%% If shifted, update theta
+if shifted
+    theta = pi - thetas(N); 
+    
+    disp("SHIFTED 2");
+    disp(theta);
+    disp(thetas);
 end
 
 %% adjust points for negative direction, flip over y axis
 if startCurvature < 0 || endCurvature < 0
+    theta = -1 * theta;
     thetas(:) = -thetas(:);
     clothoidPoints(:,1) = -clothoidPoints(:,1);
+    negative = 1;
     
     disp("NEGATIVE");
+    disp(theta);
     disp(thetas);
+else
+    negative = 0;
 end
 
 %% Set up Forward and Reverse paths
@@ -148,21 +171,21 @@ for i=1:N
         for j=1:lanes
             lanePoint = clothoidPoints(i,:) + ...
                 [cos(-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
-                sin(-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
+                sin(flipped*pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
                 0];
             forwardPaths(j,3*i-2:3*i) = lanePoint;
 
             lanePoint = clothoidPoints(i,:) + ...
-                [cos(pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
-                sin(pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
+                [cos(flipped*pi+pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
+                sin(flipped*pi+pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
                 0];
             reversePaths(j,3*(N-i)+1:3*(N-i+1)) = lanePoint;
         end
     else
         for j=1:lanes
             lanePoint = clothoidPoints(i,:) + ...
-                [cos(-thetas(i))*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) ...
-                sin(-thetas(i))*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) ...
+                [cos(flipped*pi-thetas(i))*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) ...
+                sin(flipped*pi-thetas(i))*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) ...
                 0];
             forwardPaths(j,3*i-2:3*i) = lanePoint;
         end

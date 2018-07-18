@@ -1,10 +1,16 @@
-function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newWidth, pieces, dirVec, lanes, bidirectional, midTurnLane, sLimit, rSlick)
+function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newWidth, pieces, dirVec, roadStruct)
     %LANESIZECHANGE
     %   Creates the transition piece between two road pieces to account for
     %   difference in number of lanes or size
     
     % get global value for lane width
     global LANE_WIDTH;
+    
+    % set up variables
+    lanes = roadStruct(3);
+    bidirectional = roadStruct(4);
+    midTurnLane = roadStruct(5);
+    speedLimit = roadStruct(6);
     
     % Setting a separate reference for the starting point
     oldPoint = inPoint;
@@ -261,8 +267,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     rPiece.width = rWidth;
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
-    rPiece.speedLimit = sLimit;
-    rPiece.slickness = rSlick;
+    rPiece.speedLimit = speedLimit;
 
     inPoint = newPoint;
     
