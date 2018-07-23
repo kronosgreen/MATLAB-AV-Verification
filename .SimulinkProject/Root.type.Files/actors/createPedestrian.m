@@ -17,8 +17,12 @@ switch(pieces(posIndex).type)
  
     % Multilane Road
     case 1
-
-        curv = pieces(posIndex).curvature;
+        
+        % Part of road crossing where 0 < localPos <= 1
+        localPos = randi(100)/100;
+        % get curvature of road
+        curv = ( pieces(posIndex).curvature2 - pieces(posIndex).curvature1 ) * localPos + pieces(posIndex).curvature1;
+        
         if curv ~= 0
             
             % Curved Road
@@ -26,11 +30,8 @@ switch(pieces(posIndex).type)
             % First point of road is where clothoid curve begins
             inPoint = pieces(posIndex).roadPoints(2,:);
             
-            % Part of road crossing where 0 < localPos <= 1
-            localPos = randi(100)/100;
-            
             % End Curvature
-            k_c = abs(pieces(posIndex).curvature) * localPos;
+            k_c = curv;
 
             % End circular arc (Radius) - 1 / curvature
             R_c = 1 / k_c;
@@ -78,7 +79,6 @@ switch(pieces(posIndex).type)
             % Get point on the right side of the road at the middle
             startPoint = midPoint + pieces(posIndex).width/2 * [cos(facingDir - pi/2) sin(facingDir - pi/2) 0];
             
-            
         end
                 
 end % end switch - road type
@@ -116,11 +116,36 @@ switch(pathType)
         newSpeeds = [stallSpeed stallSpeed (speed+9)/4];
         
     %
-    % Different Path ?
+    % stops in the middle of the road
     %
     case 2
+        
+        % causes the pedestrian to wait at its starting end between 0.33
+        % seconds and 10 seconds by making it move one meter with a speed
+        % of 0.1 to 3 m/s
+        stallSpeed = randi(30) / 10;
+        
+        % stopping point, somewhere between the two possible stall points,
+        % or 1 meter from either side of the road
+        stopPoint = startPoint + (rand() * (pieces(posIndex).width - 2.01) + 1.01) * [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
+        
+        % sets another point on the left side of the road
+        endPoint = startPoint + pieces(posIndex).width * [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
+        
+        % sets up actor path crossing the street from right to left if
+        % forward parameter is true, left to right if not 
+        if forward
+            stallPoint = startPoint + [cos(facingDir + pi/2) sin(facingDir + pi/2) 0];
+            newPath = [startPoint; stallPoint; stopPoint; endPoint];
+        else
+            stallPoint = endPoint + [cos(facingDir - pi/2) sin(facingDir - pi/2) 0];
+            newPath = [endPoint; stallPoint; stopPoint; startPoint];
+        end
+        
+        % after inching at the stall speed, moves across the street at a
+        % speed between 1.0 and 4.5 m/s
+        newSpeeds = [stallSpeed (speed+9)/4 0 (speed+9)/4];
         
 end % end switch
 
 end % end function
-

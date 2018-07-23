@@ -17,6 +17,7 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     
     % Runs simulations in parallel by distributing each iteration to
     % pool of workers, uses iterator as rng seed
+    
     %parfor i=1:numSimulations
         [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, 2);
         % set_param('AV_Verification_System/Main_Program',

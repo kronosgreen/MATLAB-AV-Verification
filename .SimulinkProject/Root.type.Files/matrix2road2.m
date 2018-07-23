@@ -13,11 +13,13 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     pieces = [];
     
     rPiece.type = 0;
+    rPiece.lineType = 0;
     rPiece.roadPoints = [0 0 0; 0 0 0];
     rPiece.range = [0 0 0; 0 0 0];
     rPiece.facing = facing;
     rPiece.length = 0;
-    rPiece.curvature = 0;
+    rPiece.curvature1 = 0;
+    rPiece.curvature2 = 0;
     rPiece.midTurnLane = 0;
     rPiece.bidirectional = 0;
     rPiece.lanes = 0;
@@ -28,7 +30,6 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = 0;
-    rPiece.slickness = 0;
     
     pieces = rPiece;
     
@@ -39,7 +40,7 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
         switch roadMatrix(i,1)
             case 1
                 %multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
-                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, 3), roadMatrix(i, 2), roadMatrix(i, 4), roadMatrix(i, 5), roadMatrix(i, 6), roadMatrix(i,7), roadMatrix(i,8));
+                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
             case 2
                 %roundabout
 

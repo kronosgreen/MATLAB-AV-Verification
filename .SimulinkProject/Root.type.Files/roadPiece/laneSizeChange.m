@@ -1,10 +1,16 @@
-function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newWidth, pieces, dirVec, lanes, bidirectional, midTurnLane, sLimit, rSlick)
+function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newWidth, pieces, dirVec, roadStruct)
     %LANESIZECHANGE
     %   Creates the transition piece between two road pieces to account for
     %   difference in number of lanes or size
     
     % get global value for lane width
     global LANE_WIDTH;
+    
+    % set up variables
+    lanes = roadStruct(3);
+    bidirectional = roadStruct(4);
+    midTurnLane = roadStruct(5);
+    speedLimit = roadStruct(6);
     
     % Setting a separate reference for the starting point
     oldPoint = inPoint;
@@ -231,28 +237,27 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         
     end % end for loop making transition piece
     
-    % set up bounding box
-    if facing >= 0 && facing < pi/2
-        botLeftCorner = inPoint + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + transitionSize*dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    elseif facing >= pi/2 && facing < pi
-        botLeftCorner = inPoint + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + transitionSize*dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    elseif facing >= pi && facing < 3*pi/2
-        botLeftCorner = inPoint + transitionSize*dirVec + [-cos(facing-pi/2)*newWidth/2 -sin(facing+pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    else
-        botLeftCorner = inPoint + transitionSize*dirVec + [-cos(facing+pi/2)*newWidth/2 -sin(facing-pi/2)*newWidth/2 0];
-        topRightCorner = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    end
-
+    % set up bounding box, front left/right, rear left/right corners
+    fLeft = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
+    fRight = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    rLeft = inPoint + transitionSize * dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
+    rRight = inPoint + transitionSize * dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    
+    botLeftCorner = [min([fLeft(1), fRight(1), rLeft(1), rRight(1)]) ...
+        min([fLeft(2), fRight(2), rLeft(2), rRight(2)]) ...
+        0];
+    topRightCorner = [max([fLeft(1), fRight(1), rLeft(1), ...
+        rRight(1)]) max([fLeft(2), fRight(2), rLeft(2), rRight(2)]) ...
+        0];
     
     rPiece.type = 0;
+    rPiece.lineType = 0;
     rPiece.roadPoints = [inPoint; newPoint];
     rPiece.range = [botLeftCorner; topRightCorner];
     rPiece.facing = facing;
     rPiece.length = 10;
-    rPiece.curvature = 0;
+    rPiece.curvature1 = 0;
+    rPiece.curvature2 = 0;
     rPiece.midTurnLane = midTurnLane;
     rPiece.bidirectional = bidirectional;
     rPiece.lanes = lanes;
@@ -262,8 +267,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     rPiece.width = rWidth;
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
-    rPiece.speedLimit = sLimit;
-    rPiece.slickness = rSlick;
+    rPiece.speedLimit = speedLimit;
 
     inPoint = newPoint;
     
