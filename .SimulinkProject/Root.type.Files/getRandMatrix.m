@@ -26,37 +26,57 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     for i=1:sizeRoad
         
         % Currently only multilane road is implemented
+        % Determines which piece will be placed
         roadPiece = 1;
         
+        % Sets length of the road in meters,
+        % ranges from 45 to 100
         roadLength = randi(12) * 5 + 40;
         
-        lanes = randi(5);
+        % Sets how many lanes there are to drive on, if road is two-way,
+        % lane # will be for each side (e.g. 3 lanes means 3 on each side),
+        % ranges from 1 to 5
+        % For 4 way intersections, lane #s represent the roads from top 
+        % going clockwise
+        if roadPiece == 2
+            lanes = string(dec2base(258+randi(1036),6));
+        else
+            lanes = randi(5);
+        end
         
+        % Determines whether the road will have a turn lane in the middle
+        % (1) or not (0)
         midLane = randi(2) - 1;
         
+        % Sets the speed limit for the road, when setting the paths, actors
+        % will use this value to set their speed
         speedLimit = randi(11) * 2.2352 + 11.176;
+        
+        
+        % sets both curvatures, mainly for multilane road. Starting
+        % curvature and ending curvature, both zero means straight line
+        curvature1 = 0.060 * rand() - 0.030;
+        curvature2 = 0.060 * rand() - 0.030;
         
         % Create 4 way intersection pattern
         % Starting at the top going clockwise, 0 is bidirectional
-        % 1 is one-way going out, 2 is one-way going in
+        % 1 is one-way going in, 2 is one-way going out
+        % Starts from left going clockwise w/ each digit
         intersectionValid = 0;
         while ~intersectionValid
-            intersectionPattern = string(dec2base(randi(81),3));
-            if length(intersectionPattern) < 4
-                intersectionPattern = ' ' * (4 - length(intersectionPattern)) + intersectionPattern;
+            intersectionPattern = string(dec2base(randi(27)-1,3));
+            for k=1:3-length(intersectionPattern)
+                intersectionPattern = '0' + intersectionPattern;
             end
-            if sum(char(intersectionPattern) == '1') < 3 || sum(char(intersectionPattern) == '2') < 3
-                intersectionValid = 1;
+            if sum(char(intersectionPattern) == '1') == 3 || sum(char(intersectionPattern) == '2') == 3 || sum(char(intersectionPattern) == '0') <= 1
+                intersectionValid = 0;
             else
-                
+                intersectionValid = 1;
             end
         end
         
-        % sets both curvatures, will currently both be positive
-        curvature1 = 0.060 * rand() - 0.030;
-        
-        curvature2 = 0.060 * rand() - 0.030;
-        
+        % places all values in a row that will be appended to the main road
+        % matrix
         newRoad = [roadPiece roadLength lanes bidirectional midLane speedLimit intersectionPattern curvature1 curvature2];
         
         roadMatrix(i,:) = newRoad;

@@ -36,12 +36,12 @@ function available = checkAvailability(pieces, botLeftCorner, topRightCorner, en
         return
     end
     
-    for i = 2:size(pieces,1)-2
+    for i = 2:size(pieces,1)-1
        oldL = pieces(i).range(1,1);
        oldR = pieces(i).range(2,1);
        oldT = pieces(i).range(2,2);
        oldB = pieces(i).range(1,2);
-       if roadR >= oldL && roadL <= oldR && roadT >= oldB && roadB <= oldT
+       if roadR >= oldL && roadL <= oldR && roadT >= oldB && roadB <= oldT && i ~= size(pieces,1)-1
            disp("L,R,T,B : " + oldL + ", " + oldR + ", " + oldT + ", " + oldB);
            disp("new piece : " + roadL + ", " + roadR + ", " + roadT + ", " + roadB);
            available = false;

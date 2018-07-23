@@ -35,6 +35,4 @@ end
 
 inPoint = newPoint;
 
-
 end
-

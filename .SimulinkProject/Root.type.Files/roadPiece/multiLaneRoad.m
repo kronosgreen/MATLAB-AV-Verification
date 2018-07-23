@@ -37,7 +37,6 @@
         lm = vertcat(lm, laneMarking('Dashed', 'Color', 'w'));
     end
     
-    
     if bidirectional
         roadWidth = 2 * lanes * LANE_WIDTH;
         if midTurnLane

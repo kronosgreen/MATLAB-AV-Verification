@@ -26,7 +26,7 @@ global LANE_WIDTH;
 disp("CURVATURE FROM " + startCurvature + " TO " + endCurvature);
 
 % how many points make up the clothoid, including the starting point
-N = 6;
+N = 7;
 
 % array to store thetas, or change in direction at each point
 thetas = zeros(1,N);
@@ -85,15 +85,14 @@ for i=p_start:N
     
 end
 
-disp("BEGINNING");
-disp(thetas);
-
 %% Adjust points back to zero if not starting at zero
 if length_start ~= 0
+    
     shiftPoint = clothoidPoints(1,1:2);
     shiftTheta = thetas(1);
     
     clothoidPoints(:,1:2) = clothoidPoints(:,1:2) - shiftPoint;
+    % Counter Clockwise Rotation Matrix
     R = [cos(shiftTheta) sin(shiftTheta); -sin(shiftTheta) cos(shiftTheta)];
     
     for i=1:N
@@ -101,8 +100,6 @@ if length_start ~= 0
         thetas(i) = thetas(i) - shiftTheta;
     end
     
-    disp("SHIFTED");
-    disp(thetas);
 end
 
 %% Adjust points for a decreasing curvature
@@ -127,23 +124,19 @@ if abs(startCurvature) > abs(endCurvature)
     end
     thetas = flpThetas;
     
-    disp("FLIPPED");
-    disp(thetas);
-    
 end
 
 %% adjust points for negative direction, flip over y axis
 if startCurvature < 0 || endCurvature < 0
-    thetas(:) = -thetas(:);
+    thetas(:) = -1.5 * thetas(:);
     clothoidPoints(:,1) = -clothoidPoints(:,1);
     
-    disp("NEGATIVE");
-    disp(thetas);
 end
 
 %% Set up Forward and Reverse paths
 
 for i=1:N
+    
     if bidirectional
         for j=1:lanes
             lanePoint = clothoidPoints(i,:) + ...
@@ -167,6 +160,7 @@ for i=1:N
             forwardPaths(j,3*i-2:3*i) = lanePoint;
         end
     end
+    
 end
 
 %% Rotate points to facing and adjust to inPoint
@@ -192,14 +186,13 @@ end
 
 %% update values
 
+% update facing
+facing =  atan2( clothoidPoints(N,2)-clothoidPoints(N-1,2), clothoidPoints(N,1)-clothoidPoints(N-1,1) );
+facing = mod(facing, 2*pi);
 % update inPoint
 inPoint = clothoidPoints(N,:);
-
-% update facing
-facing = mod(facing - thetas(N), 2*pi);
-
 %update road points with new curve points
-roadPoints = [roadPoints; clothoidPoints];
+roadPoints = [roadPoints; clothoidPoints; inPoint];
 
 end
 
