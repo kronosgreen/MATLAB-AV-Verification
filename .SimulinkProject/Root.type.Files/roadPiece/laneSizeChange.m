@@ -6,6 +6,9 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     % get global value for lane width
     global LANE_WIDTH;
     
+    % Get length of transition piece
+    global TRANSITION_PIECE_LENGTH;
+    
     % set up variables
     lanes = roadStruct(3);
     bidirectional = roadStruct(4);
@@ -23,9 +26,6 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
 
     % How many pieces the transition will take place over
     numPieces = 8;
-    
-    % Total length of transition piece
-    transitionSize = 10;
     
     % Lane Markings
     if newWidth >= rWidth
@@ -86,16 +86,16 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     end
     lm = vertcat(lm, laneMarking('Solid','Color','w'));
     
+    % CHECK SMALL & LARGE LANE NUMS
     
     %
     % Calculate Transition pieces and place on road
     %
     for i = 1:numPieces
-        
         % calculate new width of transition piece
         rWidth = rWidth + change/numPieces;
         % calculate new end point for transition piece
-        newPoint = oldPoint + transitionSize*dirVec/numPieces;
+        newPoint = oldPoint + TRANSITION_PIECE_LENGTH*dirVec/numPieces;
         
         % Lane Specifications
         % Set widths
@@ -106,7 +106,8 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         if bidirectional
             % determines whether to account for a mid turn lane when
             % calculating lane index
-            mid = (midTurnLane || pieces(length(pieces)).midTurnLane);
+            
+                mid = (midTurnLane || pieces(length(pieces)).midTurnLane);
             
             if midTurnLane && ~pieces(length(pieces)).midTurnLane
             % mid turn lane to no mid turn lane
@@ -132,7 +133,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
             widths(largerLaneNum+1) = midLaneWidth;
             % will only subtract if mid lane exists
             availableWidth = availableWidth - mid * midLaneWidth;
-                
+            
             for b = 1:smallerLaneNum
                 % road to left of mid turn lane
                 widths(largerLaneNum - b + 1) = LANE_WIDTH;
@@ -185,13 +186,16 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
                 % Center lanes that coincide line up with smaller road
                 
                 % center lanes start
-                cenLaneStart = ceil((largerLaneNum - smallerLaneNum) / 2) + 1;
-                for b=0:smallerLaneNum-1
+                cenLaneStart = ceil((largerLaneNum - smallerLaneNum) / 2);
+                
+                % Get Inner Lanes
+                for b=1:smallerLaneNum
                     widths(cenLaneStart + b) = LANE_WIDTH;
+                    availableWidth = availableWidth - LANE_WIDTH;
                 end
                 
                 % Outer Lanes
-                for b=1:cenLaneStart-1
+                for b=1:cenLaneStart
                     if availableWidth >= 2 * LANE_WIDTH
                         widths(b) = LANE_WIDTH;
                         widths(totalLanes - b + 1) = LANE_WIDTH;
@@ -240,8 +244,8 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     % set up bounding box, front left/right, rear left/right corners
     fLeft = inPoint + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
     fRight = inPoint + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
-    rLeft = inPoint + transitionSize * dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
-    rRight = inPoint + transitionSize * dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
+    rLeft = inPoint + TRANSITION_PIECE_LENGTH * dirVec + [cos(facing+pi/2)*newWidth/2 sin(facing+pi/2)*newWidth/2 0];
+    rRight = inPoint + TRANSITION_PIECE_LENGTH * dirVec + [cos(facing-pi/2)*newWidth/2 sin(facing-pi/2)*newWidth/2 0];
     
     botLeftCorner = [min([fLeft(1), fRight(1), rLeft(1), rRight(1)]) ...
         min([fLeft(2), fRight(2), rLeft(2), rRight(2)]) ...

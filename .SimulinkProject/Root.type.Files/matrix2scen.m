@@ -5,11 +5,10 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     drScn.StopTime = inf;
 
     [drScn, pieces] = matrix2road2(drScn, roadMatrix);
-
+    
     [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
 
     %poseRecord = record(drScn)
-
 
     hFigure = figure;
     hFigure.Position(3) = 900;

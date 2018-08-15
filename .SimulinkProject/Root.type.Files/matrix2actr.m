@@ -1,16 +1,19 @@
 function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
-    % Call Global variables such as the current scenario 's'
-    
+
+    %% Ego Vehicle
     % Creates Ego Vehicle and assigns it the ego path, as well as the speed
     % limits of the road
     
-    % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex)
-    [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, 1, 1, 1, 0, [1 1 1], 1, 0);           
+    disp("CREATING EGO VEHICLE");
+    egoStruct =  [1 1 1 0 10 10 10 0 1 0];
+    [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, egoStruct, 1);           
     egoCar.ActorID = 1;
     
-    trajectory(egoCar,ep,egoSpeeds);
+    trajectory(egoCar,ep(1:size(ep,1)-1,:),egoSpeeds(1:size(egoSpeeds,2)-1));
     
     vehicles = egoCar;
+    
+    %% Create Actors
     
     % newActor = [actorType pathType carType movSpeed dimensions startLoc forward];
     % actors = ["Other Car", "Tree", "Building", "Stop Sign"];
@@ -33,25 +36,18 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                 % Vehicle
                 disp('Placing Vehicle');
                 
-                % createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex)
-                [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,2), actorMatrix(i,3), actorMatrix(i,9), actorMatrix(i,4), actorMatrix(i,5:7), posIndex, actorMatrix(i,10));
-
-                if ~isempty(newPath)
-                    %have to add a far off point or else the simulation
-                    %will stop when anyone reaches the end
-                    newPath = vertcat(newPath, [1000 1000 1000]);
-                    newSpeeds = [newSpeeds 10];
-                    trajectory(ac, newPath, newSpeeds);
-                end
+                [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,:), posIndex);
                 
                 vehicles = vertcat(vehicles, ac);
+                
+                trajectory(ac, newPath, newSpeeds);
                 
             case 2
                 % Pedestrian
                 disp('Placing Pedestrian');
                 
-                % createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, posIndex)
-                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,3), actorMatrix(i,4), actorMatrix(i,9), actorMatrix(i,5:7), posIndex);
+                % createPedestrian(drScn, pieces, actorStruct, posIndex)
+                [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorMatrix(i,:), posIndex);
                 
                 if ~isempty(newPath)
                     %have to add a far off point or else the simulation
@@ -60,15 +56,6 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                     newSpeeds = [newSpeeds 10];
                     trajectory(ac, newPath, newSpeeds);
                 end
-                
-            case 3
-                % Tree
-                disp('Placing Tree');
-                
-                
-            case 4
-                % Stop Sign
-                disp('Placing Stop Sign');
                 
         end % end switch
         

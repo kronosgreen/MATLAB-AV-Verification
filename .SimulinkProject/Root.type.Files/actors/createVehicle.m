@@ -1,14 +1,24 @@
-function [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, type, pathType, forward, speed, dimensions, posIndex, offset)
-%CREATEVEHICLE Create vehicle function
+function [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorStruct, posIndex)
+%CREATEVEHICLE Creates vehicle based on given parameters and generates
+%path and speed based on generated road
 
-%Get dimensions of Lane Width
+% Get dimensions of Lane Width
 global LANE_WIDTH;
 
-%Get dimensions
+% Get variables
+typeVehicle = actorStruct(2);
+pathType = actorStruct(3);
+speed = actorStruct(4);
+dimensions = actorStruct(5:7);
+forward = actorStruct(9);
+offset = actorStruct(10);
+
+% Get dimensions
 vLen = (dimensions(1) + 20) / 30;
 vWdth = (dimensions(2) + 20) / 30;
 vHght = (dimensions(3) + 20) / 30;
-switch(type)
+
+switch(typeVehicle)
     case 1
         % Sedan
         ac = vehicle(drScn, 'Length', 5 * vLen, 'Width', 2 * vWdth, 'Height', 1.6 * vHght);
@@ -44,12 +54,18 @@ switch(pathType)
                 % Non zero Pieces have drivable points
                 if pieces(a).type ~= 0
                     
-                    %find available lane
+                    % Find available lane by checking occupied lane array
+                    % in each piece. The number in each lane represents
+                    % how far a vehicle was in its path when it passed
+                    % through that lane, avoiding most conflicts by merely
+                    % checking that it doesn't match where the current
+                    % vehicle is
                     availableLane = -1;
-                    for b=1+pieces(a).bidirectional*pieces(a).lanes:(1+pieces(a).bidirectional)*pieces(a).lanes
+                    for b=1+pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1): ...
+                            pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1) + size(pieces(a).forwardDrivingPaths,1)
                         if pieces(a).occupiedLanes(b) ~= pathOrder
                             pieces(a).occupiedLanes(b) = pathOrder;
-                            availableLane = b - pieces(a).bidirectional * pieces(a).lanes;
+                            availableLane = b - pieces(a).bidirectional * size(pieces(a).forwardDrivingPaths,1);
                             break
                         end
                     end
@@ -64,7 +80,7 @@ switch(pathType)
                     else
                         % Actor will slow down if no available lane
                         
-                        lane = randi(pieces(a).lanes);
+                        lane = randi(size(pieces(a).forwardDrivingPaths,1));
                         
                         disp("could not find available lane");
                         stallPoint = pieces(a).forwardDrivingPaths(lane,1:3) - 2 * [cos(pieces(a-1).facing) sin(pieces(a-1).facing) 0];
@@ -83,6 +99,7 @@ switch(pathType)
                 end % end if check for non road pieces
                 
             end % end road pieces for loop
+            
 
         else
 
@@ -92,9 +109,23 @@ switch(pathType)
                 % Non zero Pieces have drivable points
                 if pieces(a).type ~= 0
 
-                    %find available lane
+                    % If there are no lanes going reverse available, go
+                    % somewhere where there is or end the vehicle's path
+                    if pieces(a).reverseDrivingPaths == 0
+                        if isempty(newPath)
+                            continue;
+                        else
+                            break;
+                        end
+                    end
+                    % Find available lane by checking occupied lane array
+                    % in each piece. The number in each lane represents
+                    % how far a vehicle was in its path when it passed
+                    % through that lane, avoiding most conflicts by merely
+                    % checking that it doesn't match where the current
+                    % vehicle is
                     availableLane = -1;
-                    for b=1:pieces(a).lanes
+                    for b=1:size(pieces(a).reverseDrivingPaths,1)
                         if pieces(a).occupiedLanes(b) ~= pathOrder
                             pieces(a).occupiedLanes(b) = pathOrder;
                             availableLane = b;
@@ -112,10 +143,10 @@ switch(pathType)
                     else
                         % Actor will slow down if no availbale lane
                         
-                        lane = randi(pieces(a).lanes);
+                        lane = randi(size(pieces(a).reverseDrivingPaths,1));
    
                         disp("could not find available lane");
-                        stallPoint = pieces(a).reverseDrivingPaths(lane,1:3) + [cos(pieces(a+1).facing) sin(pieces(a+1).facing) 0];
+                        stallPoint = pieces(a).reverseDrivingPaths(lane,1:3) + [cos(pieces(a).facing) sin(pieces(a).facing) 0];
                         newPath = vertcat(newPath, stallPoint);
                         newSpeeds = [newSpeeds 0];
 
@@ -134,6 +165,7 @@ switch(pathType)
             end % end road for loop
 
         end % end if forward/reverse
+       
 
     %
     % Off-lane Path
@@ -149,12 +181,18 @@ switch(pathType)
                 % Non zero Pieces have drivable points
                 if pieces(a).type ~= 0
                     
-                    %find available lane
+                    % Find available lane by checking occupied lane array
+                    % in each piece. The number in each lane represents
+                    % how far a vehicle was in its path when it passed
+                    % through that lane, avoiding most conflicts by merely
+                    % checking that it doesn't match where the current
+                    % vehicle is
                     availableLane = -1;
-                    for b=1+pieces(a).bidirectional*pieces(a).lanes:(1+pieces(a).bidirectional)*pieces(a).lanes
+                    for b=1+pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1): ...
+                            pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1) + size(pieces(a).forwardDrivingPaths,1)
                         if pieces(a).occupiedLanes(b) ~= pathOrder
                             pieces(a).occupiedLanes(b) = pathOrder;
-                            availableLane = b - pieces(a).bidirectional * pieces(a).lanes;
+                            availableLane = b - pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1);
                             break
                         end
                     end
@@ -169,7 +207,7 @@ switch(pathType)
                     else
                         % Actor will slow down if no available lane
 
-                        lane = randi(pieces(a).lanes);
+                        lane = randi(size(pieces(a).forwardDrivingPaths,1));
 
                         disp("could not find available lane");
                         stallPoint = pieces(a).forwardDrivingPaths(lane,1:3) - 2 * [cos(pieces(a-1).facing) sin(pieces(a-1).facing) 0];
@@ -196,10 +234,25 @@ switch(pathType)
             for a=posIndex:-1:1
                 % Non zero Pieces have drivable points
                 if pieces(a).type ~= 0
-
-                    %find available lane
+                    
+                    % If there are no lanes going reverse available, go
+                    % somewhere where there is or end the vehicle's path
+                    if pieces(a).reverseDrivingPaths == 0
+                        if isempty(newPath)
+                            continue;
+                        else
+                            break;
+                        end
+                    end
+                    
+                    % Find available lane by checking occupied lane array
+                    % in each piece. The number in each lane represents
+                    % how far a vehicle was in its path when it passed
+                    % through that lane, avoiding most conflicts by merely
+                    % checking that it doesn't match where the current
+                    % vehicle is
                     availableLane = -1;
-                    for b=1:pieces(a).lanes
+                    for b=1:size(pieces(a).reverseDrivingPaths,1)
                         if pieces(a).occupiedLanes(b) ~= pathOrder
                             pieces(a).occupiedLanes(b) = pathOrder;
                             availableLane = b;
@@ -247,7 +300,15 @@ switch(pathType)
             newPath(n:n+2) = newPath(n:n+2) + offset * LANE_WIDTH * [cos(dirOffset) sin(dirOffset) 0];
         end
         
+        
 end % end switch
+
+% Add far off point to continue simulation after vehicle path
+% done
+if ~isempty(newPath)
+    newPath = [newPath; 1000 1000 1000];
+    newSpeeds = [newSpeeds 10];
+end
 
 end % end function
 

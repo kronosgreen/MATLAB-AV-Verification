@@ -8,6 +8,7 @@
     disp("Starting Multi-Lane Road");
     
     % set up variables from struct
+    roadType = roadStruct(1);
     length = roadStruct(2);
     lanes = roadStruct(3);
     bidirectional = roadStruct(4);
@@ -20,12 +21,18 @@
     % facing parameter in radians and creating a vector
     dirVec = [cos(facing) sin(facing) 0];
     
+    % Get lane width
+    global LANE_WIDTH;
+    
+    % Get transition Size
+    global TRANSITION_PIECE_LENGTH;
+    
     % get original parameters stored
     oldFacing = facing;
     oldInPoint = inPoint;
     
-    % Get lane width
-    global LANE_WIDTH;
+    % Set up new inpoint to be where the transition piece would put it
+    if roadType == 1, inPoint = inPoint + TRANSITION_PIECE_LENGTH * [cos(facing) sin(facing) 0]; end
     
     % Also set up lane markings & specifications
     % Start off left side of the road with a solid white line
@@ -68,26 +75,18 @@
     % Define lane specifications to be separated by LANE_WIDTH
     ls = lanespec(roadWidth/LANE_WIDTH, 'Width', LANE_WIDTH, 'Marking', lm);
     
-    % Transition the lane width from the previous piece to the current one
-    % creating a new middle piece in the shape of a trapezoid.
-    % Checks to see if this isn't the first piece placed
-    if pieces(size(pieces, 1)).lanes ~= 0
-        [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, ...
-            roadWidth, pieces, dirVec, roadStruct);
-    end
-    
     % Set up matrix to store corner points
     corners = zeros(4,3);
-    
+    disp("CURVATURES: " + curvature1 + "," + curvature2);
     % determine the line type
     if curvature1 == 0 && curvature2 == 0
         lineType = 0;
     elseif curvature1 == 0 
         lineType = 1;
-        curv = curvature1;
+        curv = curvature2;
     elseif curvature2 == 0
         lineType = 1;
-        curv = curvature2;
+        curv = curvature1;
     % determining whether the road is clothoid-arc-clothoid or the reverse
     % of that is currently done arbitrarily; most likely will add parameter
     % later
@@ -103,35 +102,35 @@
         case 0
             disp("Straight Line");
             [roadPoints, forwardPaths, reversePaths, inPoint, facing] = ...
-                createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane);
+                createStraightLine(roadPoints, inPoint, facing, length, roadStruct);
         case 1
             disp("Line - Clothoid - Arc");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
-                createStraightLine(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane);
+                createStraightLine(roadPoints, inPoint, facing, length/3, roadStruct);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curv);
+                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, 0, curv);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length, curv, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints, inPoint, facing, length/3, curv, lanes, bidirectional, midTurnLane);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
         case 2
             disp("Clothoid - Arc - Clothoid");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, 0, curvature1);
+                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, 0, curvature1);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints, inPoint, facing, length/3, curvature1, lanes, bidirectional, midTurnLane);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, curvature1, curvature2);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
         case 3
             disp("Arc - Clothoid - Arc");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length, curvature1, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints, inPoint, facing, length/3, curvature1, lanes, bidirectional, midTurnLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createClothoid(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+                createClothoid(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length/3, lanes, bidirectional, midTurnLane, curvature1, curvature2);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createArc(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length, curvature2, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length/3, curvature2, lanes, bidirectional, midTurnLane);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     end
@@ -177,16 +176,25 @@
     % If conflicts with any other piece, will stop placing
     if ~checkAvailability(pieces, botLeftCorner, topRightCorner, [oldInPoint(1:2);inPoint(1:2)], facing, length)
         disp("@ Multi Lane Road : Could Not Place Piece");
-        % return to original variables
-        pieces = pieces(1:size(pieces,1)-1);
-        inPoint = roadPoints(1,:);
+        inPoint = oldInPoint;
         facing = oldFacing;
         return
     end
+    
     hold on;
     plot(roadPoints(:,1),roadPoints(:,2));
     plot(forwardPaths(1,1:3:size(forwardPaths, 2)),forwardPaths(1,2:3:size(forwardPaths,2)));
     if bidirectional, plot(reversePaths(1,1:3:size(forwardPaths, 2)),reversePaths(1,2:3:size(forwardPaths,2))); end
+    if lanes > 1, plot(forwardPaths(2,1:3:size(forwardPaths, 2)),forwardPaths(2,2:3:size(forwardPaths,2))); end
+    
+    % Transition the lane width from the previous piece to the current one
+    % creating a new middle piece in the shape of a trapezoid.
+    % Checks to see if this isn't the first piece placed
+    if size(pieces,1) >= 2
+        [xinPoint, xfacing, pieces] = laneSizeChange(drScn, oldInPoint, oldFacing, ...
+            roadWidth, pieces, dirVec, roadStruct);
+    end
+    
     % Create Road Piece in Scenario
     road(drScn, roadPoints, 'Lanes', ls);
     

@@ -1,6 +1,9 @@
 close all
 clear
 clc
+
+delete("thetas_accuracy_data.txt");
+
 % Set up global variables
 setGlobalVars();
 

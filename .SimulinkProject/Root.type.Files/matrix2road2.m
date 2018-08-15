@@ -39,20 +39,11 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     for i = 1:size(roadMatrix,1)
         switch roadMatrix(i,1)
             case 1
-                %multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
+                % multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
                 [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
             case 2
-                %roundabout
-
-            case 3
-                %intersection
-
-            case 4
-                %fork
-
-            case 5
-                %idk
-                
+                % 4-way intersection
+                [facing, inPoint, pieces] = fourWayIntersection(drScn, inPoint, facing, pieces, roadMatrix(i, :));
         end % end switch
         
     end % end for loop
