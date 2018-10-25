@@ -133,7 +133,6 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
             widths(largerLaneNum+1) = midLaneWidth;
             % will only subtract if mid lane exists
             availableWidth = availableWidth - mid * midLaneWidth;
-            
             for b = 1:smallerLaneNum
                 % road to left of mid turn lane
                 widths(largerLaneNum - b + 1) = LANE_WIDTH;
@@ -232,7 +231,6 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         
         % Create spec
         ls = lanespec(totalLanes,'Width',widths,'Marking',lm);
-        
         % Place road piece in scene
         road(drScn, [oldPoint; newPoint], 'Lanes', ls);
         

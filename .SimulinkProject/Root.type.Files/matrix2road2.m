@@ -35,9 +35,12 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     
     % ROAD MATRIX
     %
-    %   [roadPiece roadLength lanes egoLane bidirectional speedLimit roadSlickness]
+    %   Assertion : [roadType roadLength lanes bidirectional midLane speedLimit intersectionPattern curvature1 curvature2]
     for i = 1:size(roadMatrix,1)
+        
+        disp("Road #" + i);
         switch roadMatrix(i,1)
+            
             case 1
                 % multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
                 [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));

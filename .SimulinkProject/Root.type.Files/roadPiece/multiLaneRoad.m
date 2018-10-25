@@ -154,7 +154,7 @@
     % set up road points with extra points at beginning and end to
     % ensure direction is maintained at each
     endPoint =  inPoint + oldDirVec + newDirVec;
-    roadPoints = [oldInPoint; roadPoints + oldDirVec; endPoint];
+    roadPoints = [roadPoints(1,:); roadPoints + oldDirVec; endPoint];
     
     % Set up corners to make boundaries
     corners(1,:) = oldInPoint + roadWidth/2*[cos(oldFacing+pi/2) sin(oldFacing+pi/2) 0];
@@ -185,6 +185,7 @@
     plot(roadPoints(:,1),roadPoints(:,2));
     plot(forwardPaths(1,1:3:size(forwardPaths, 2)),forwardPaths(1,2:3:size(forwardPaths,2)));
     if bidirectional, plot(reversePaths(1,1:3:size(forwardPaths, 2)),reversePaths(1,2:3:size(forwardPaths,2))); end
+    if bidirectional && lanes > 1, plot(reversePaths(2,1:3:size(forwardPaths, 2)),reversePaths(2,2:3:size(forwardPaths,2))); end
     if lanes > 1, plot(forwardPaths(2,1:3:size(forwardPaths, 2)),forwardPaths(2,2:3:size(forwardPaths,2))); end
     
     % Transition the lane width from the previous piece to the current one

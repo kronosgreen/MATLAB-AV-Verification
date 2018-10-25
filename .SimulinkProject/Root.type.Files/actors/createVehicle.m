@@ -61,18 +61,19 @@ switch(pathType)
                     % checking that it doesn't match where the current
                     % vehicle is
                     availableLane = -1;
-                    for b=1+pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1): ...
-                            pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1) + size(pieces(a).forwardDrivingPaths,1)
+                    for b=1+(size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths,1): ...
+                            (size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths,1) + size(pieces(a).forwardDrivingPaths,1)
                         if pieces(a).occupiedLanes(b) ~= pathOrder
                             pieces(a).occupiedLanes(b) = pathOrder;
-                            availableLane = b - pieces(a).bidirectional * size(pieces(a).forwardDrivingPaths,1);
+                            availableLane = b - (size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths,1);
                             break
                         end
                     end
-                    
                     %add lane path to new actor's driving path
+                    start = 1;
+                    if a==posIndex, start = randi(size(pieces(a).forwardDrivingPaths,2)/3) * 3 - 2; end
                     if availableLane ~= -1
-                        for c=1:3:size(pieces(a).forwardDrivingPaths,2)
+                        for c=start:3:size(pieces(a).forwardDrivingPaths,2)
                             nextPoint = pieces(a).forwardDrivingPaths(availableLane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
@@ -81,13 +82,11 @@ switch(pathType)
                         % Actor will slow down if no available lane
                         
                         lane = randi(size(pieces(a).forwardDrivingPaths,1));
-                        
-                        disp("could not find available lane");
-                        stallPoint = pieces(a).forwardDrivingPaths(lane,1:3) - 2 * [cos(pieces(a-1).facing) sin(pieces(a-1).facing) 0];
-                        newPath = vertcat(newPath, stallPoint);
-                        newSpeeds = [newSpeeds 0];
+                        %stallPoint = pieces(a).forwardDrivingPaths(lane,1:3) - 2 * [cos(pieces(a-1).facing) sin(pieces(a-1).facing) 0];
+                        %newPath = vertcat(newPath, stallPoint);
+                        %newSpeeds = [newSpeeds 0];
 
-                        for c=1:3:size(pieces(a).forwardDrivingPaths,2)
+                        for c=start:3:size(pieces(a).forwardDrivingPaths,2)
                             nextPoint = pieces(a).forwardDrivingPaths(lane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
@@ -134,8 +133,10 @@ switch(pathType)
                     end
                     
                     %add lane path to new actor's driving path
+                    start = 1;
+                    if a==posIndex, start = randi(size(pieces(a).forwardDrivingPaths,2)/3) * 3 - 2; end
                     if availableLane ~= -1
-                        for c=1:3:size(pieces(a).reverseDrivingPaths,2)
+                        for c=start:3:size(pieces(a).reverseDrivingPaths,2)
                             nextPoint = pieces(a).reverseDrivingPaths(availableLane, c:c+2);
                             newPath = vertcat(newPath, nextPoint);
                             newSpeeds = [newSpeeds pieces(a).speedLimit+speed];
@@ -188,11 +189,11 @@ switch(pathType)
                     % checking that it doesn't match where the current
                     % vehicle is
                     availableLane = -1;
-                    for b=1+pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1): ...
-                            pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1) + size(pieces(a).forwardDrivingPaths,1)
+                    for b=1+(size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths,1): ...
+                            (size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths,1) + size(pieces(a).forwardDrivingPaths,1)
                         if pieces(a).occupiedLanes(b) ~= pathOrder
                             pieces(a).occupiedLanes(b) = pathOrder;
-                            availableLane = b - pieces(a).bidirectional * size(pieces(a).reverseDrivingPaths,1);
+                            availableLane = b - (size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths,1);
                             break
                         end
                     end
@@ -297,7 +298,7 @@ switch(pathType)
         % - moves the points in a path off the lane by the offset parameter
         for n=1:3:length(newPath)
             dirOffset = 2*pi * rand();
-            newPath(n:n+2) = newPath(n:n+2) + offset * LANE_WIDTH * [cos(dirOffset) sin(dirOffset) 0];
+            newPath(n:n+2) = newPath(n:n+2) + offset * [cos(dirOffset) sin(dirOffset) 0];
         end
         
         

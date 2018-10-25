@@ -14,7 +14,7 @@ global TRANSITION_PIECE_LENGTH;
 
 % Set up inpoint where transition piece would put it
 oldInPoint = inPoint;
-inPoint = inPoint + TRANSITION_PIECE_LENGTH * [cos(facing) sin(facing) 0];
+if size(pieces,1) >= 2, inPoint = inPoint + TRANSITION_PIECE_LENGTH * [cos(facing) sin(facing) 0]; end
 
 % Create Direction Vector
 dirVec = [cos(facing) sin(facing) 0];
@@ -24,6 +24,9 @@ dirVec = [cos(facing) sin(facing) 0];
 length = roadStruct(2);
 lanes = int2str(roadStruct(3));
 bidirectional = roadStruct(4);
+if pieces(end).bidirectional ~= bidirectional
+    bidirectional = ~bidirectional;
+end
 speedLimit = roadStruct(6);
 interPattern = int2str(roadStruct(7));
 for k=1:4-size(interPattern,2)
@@ -93,9 +96,9 @@ centerHeight = max([lWidth rWidth]) + lengthAlpha;
 
 % Start - End Points
 % Setting up the points for each road going into the intersection
-bRoadPoints = [inPoint; (inPoint + length/2 * [cos(facing) sin(facing) 0])];
+bRoadPoints = [inPoint; (inPoint + (length/2 + 4) * [cos(facing) sin(facing) 0])];
 tRoadPoints = [bRoadPoints(2,:) + centerHeight * [cos(facing) sin(facing) 0]; 0 0 0];
-tRoadPoints(2,:) = tRoadPoints(1,:) + length/2 * [cos(facing) sin(facing) 0];
+tRoadPoints(2,:) = tRoadPoints(1,:) + (length/2 + 4) * [cos(facing) sin(facing) 0];
 
 % sets where the left and right roads going into it will line up since they
 % will directly face each other as the top and bottom roads do
@@ -113,11 +116,11 @@ else
     rRoadPoints = centerY + max([tWidth bWidth])/2 * [cos(facing-pi/2) sin(facing-pi/2) 0];
 end
 
-lRoadPoints = vertcat(lRoadPoints, lRoadPoints(1,:) + length/2 * [cos(facing+pi/2) sin(facing+pi/2) 0]);
-rRoadPoints = vertcat(rRoadPoints, rRoadPoints(1,:) + length/2 * [cos(facing-pi/2) sin(facing-pi/2) 0]);
+lRoadPoints = vertcat(lRoadPoints, lRoadPoints(1,:) + (length/2 + 4) * [cos(facing+pi/2) sin(facing+pi/2) 0]);
+rRoadPoints = vertcat(rRoadPoints, rRoadPoints(1,:) + (length/2 + 4) * [cos(facing-pi/2) sin(facing-pi/2) 0]);
 
-% Set up the points for the center space. Will be a square of sides
-% max(L,R) + lengthAlpha or the equivalent max(T,B) + lengthBeta
+% Set up the points for the center space. Will be a rectangle of sides
+% max(L,R) + lengthAlpha and max(T,B) + lengthBeta
 
 centerRoadPoints = lRoadPoints(1,:);
 % aligns the point with the center of the space horizontally
@@ -139,14 +142,20 @@ newInPoint = endPoints(contDirection,:);
 intersFacing = [pi/2 0 -pi/2];
 newFacing = facing + intersFacing(contDirection);
 
-botLeftCorner = [min([lRoadPoints(2,1), tRoadPoints(2,1), rRoadPoints(2,1), bRoadPoints(1,1)]) ...
-    min([lRoadPoints(2,2), tRoadPoints(2,2), rRoadPoints(2,2), bRoadPoints(1,2)]) ...
-0];
-topRightCorner = [max([lRoadPoints(2,1), tRoadPoints(2,1), rRoadPoints(2,1), bRoadPoints(1,1)]) ...
-    max([lRoadPoints(2,2), tRoadPoints(2,2), rRoadPoints(2,2), bRoadPoints(1,2)]) ...
-0];
+fwdVec = [cos(facing) sin(facing)];
+rghtVec = [cos(facing-pi/2) sin(facing-pi/2)];
+
+corners = [lRoadPoints(2,1:2)+lWidth/2 * fwdVec; lRoadPoints(2,1:2)-lWidth/2 * fwdVec; ...
+    tRoadPoints(2,1:2) + tWidth/2 * rghtVec; tRoadPoints(2,1:2) - tWidth/2 * rghtVec; ...
+    rRoadPoints(2,1:2) + rWidth/2 * fwdVec; rRoadPoints(2,1:2) - rWidth/2 * fwdVec; ...
+    bRoadPoints(1,1:2) + bWidth/2 * rghtVec; bRoadPoints(1,1:2) - bWidth/2 * rghtVec];
+
+botLeftCorner = [min(corners(:,1).') min(corners(:,2).') 0];
+
+topRightCorner = [max(corners(:,1).') max(corners(:,2).') 0];
 
 if ~checkAvailability(pieces, botLeftCorner, topRightCorner, [newInPoint-[length,length,0];newInPoint], newFacing, length)
+    disp("@ Four-Way Intersection : Could Not Place Piece");
     inPoint = oldInPoint;
     return
 end
@@ -159,6 +168,7 @@ bottomAssertion = [2 length/2 bLanes bidirectional 0 speedLimit 0 0 0];
 
 % Create Transition Piece
 if size(pieces,1) >= 2
+    disp(interPattern);
     [inPoint, facing, pieces] = laneSizeChange(drScn, oldInPoint, facing, ...
         bWidth, pieces, dirVec, bottomAssertion);
 end
@@ -185,8 +195,19 @@ if rDirection == 1, rRoadPoints = flipud(rRoadPoints); end
 [facingBottom, inPointBottom, bottomPiece] = multiLaneRoad(drScn, inPoint, facing, pieces(1,1), bottomAssertion);
 
 % Create Center Road Area
-road(drScn, centerRoadPoints, centerWidth);
-
+try
+    road(drScn, centerRoadPoints, centerWidth);
+    % plot center space
+    plot(centerRoadPoints(:,1),centerRoadPoints(:,2));
+    cenBorder = centerRoadPoints(1,1:2) + centerWidth/2 * [cos(facing-pi/2) sin(facing-pi/2)];
+    cenBorder = [cenBorder; centerRoadPoints(1,1:2)  + centerWidth/2 * [cos(facing+pi/2) sin(facing+pi/2)]];
+    cenBorder = [cenBorder; cenBorder(2,:) + centerHeight * [cos(facing) sin(facing)]];
+    cenBorder = [cenBorder; cenBorder(3,:) + centerWidth * [cos(facing-pi/2) sin(facing-pi/2)]];
+    cenBorder = [cenBorder; cenBorder(1,:)];
+    plot(cenBorder(:,1),cenBorder(:,2));
+catch ME
+   disp("Error placing center road piece: " + ME.identifier);
+end
 
 %% Calculate Turn Lanes for Each Road
 
@@ -293,54 +314,59 @@ else
 
 end
 
-% Set up lane paths (Basic)
+%% Set up lane paths (Basic)
+%
+% Setting up paths for vehicles to take. Made by connecting the appropriate
+% lane path from the starting road at the bottom of the intersection to the
+% appropriate lane path in the continuing one. 
+%
 switch contDirection
     case 1
+        %
+        % Go Left
+        %
         % Create Reverse Paths as right turn from left side
         if lDirection ~= 0 || ~bidirectional
             reversePaths = 0;
-            totalOccLanes = 0;
         else
             leftRoadRightTurn = lLanes - rLanes*(rDirection~=1);
             if leftRoadRightTurn <= 0, leftRoadRightTurn = 1; end
             minLanes = min([2 leftRoadRightTurn bLanes]);
-            totalOccLanes = minLanes;
             reversePaths = [leftPiece(2).reverseDrivingPaths(lLanes-minLanes+1:lLanes,:) bottomPiece(2).reverseDrivingPaths(bLanes-minLanes+1:bLanes,:)];
         end
         % Create forward paths
         minLanes = min([bottomPiece(2).lanes leftPiece(2).lanes 2]);
-        totalOccLanes = totalOccLanes + minLanes;
         forwardPaths = [bottomPiece(2).forwardDrivingPaths(1:minLanes,:) leftPiece(2).forwardDrivingPaths(1:minLanes,:)];
     case 2
+        %
+        % Go Straight
+        %
         % Create reverse paths coming back across from the top road
         if tDirection ~= 0 || ~bidirectional
             reversePaths = 0;
-            totalOccLanes = 0;
         else
             minLanes = min([tLanes bLanes]);
-            totalOccLanes = minLanes;
             reversePaths = [topPiece(2).reverseDrivingPaths(1:minLanes,:) bottomPiece(2).reverseDrivingPaths(1:minLanes,:)];
         end
         % Create forward paths
         minLanes = min([bottomPiece(2).lanes topPiece(2).lanes]);
-        totalOccLanes = totalOccLanes + minLanes;
         forwardPaths = [bottomPiece(2).forwardDrivingPaths(1:minLanes,:) topPiece(2).forwardDrivingPaths(1:minLanes,:)];
     case 3
+        %
+        % Go Right
+        %
         % Create reverse paths as left turns from right side
         if rDirection ~= 0 || ~bidirectional
             reversePaths = 0;
-            totalOccLanes = 0;
         else
             rightRoadLeftTurn = rLanes - lLanes*(lDirection~=1);
             if rightRoadLeftTurn <= 0, rightRoadLeftTurn = 1; end
             minLanes = min([2 rightRoadLeftTurn bLanes]);
-            totalOccLanes = minLanes;
             reversePaths = [rightPiece(2).reverseDrivingPaths(1:minLanes,:) bottomPiece(2).reverseDrivingPaths(1:minLanes,:)];
         end
         % Create forward Paths
-        minLanes = min([bottomPiece(2).lanes rightPiece(2).lanes]);
-        totalOccLanes = totalOccLanes + minLanes;
-        forwardPaths = [bottomPiece(2).forwardDrivingPaths(1:minLanes,:) rightPiece(2).forwardDrivingPaths(1:minLanes,:)];
+        minLanes = min([2 bottomPiece(2).lanes rightPiece(2).lanes]);
+        forwardPaths = [bottomPiece(2).forwardDrivingPaths(bLanes-minLanes+1:bLanes,:) rightPiece(2).forwardDrivingPaths(rLanes-minLanes+1:rLanes,:)];
 end
 
 %% Set up continue spot & Piece
@@ -358,7 +384,7 @@ rPiece.bidirectional = interPattern(contDirection) == '0';
 rPiece.lanes = contLanes(contDirection);
 rPiece.forwardDrivingPaths = forwardPaths;
 rPiece.reverseDrivingPaths = reversePaths;
-rPiece.occupiedLanes = zeros(1,totalOccLanes);
+rPiece.occupiedLanes = zeros(1, (size(reversePaths,1) * bidirectional * (interPattern(contDirection) == '0')) + size(forwardPaths, 1));
 rPiece.width = contWidths(contDirection);
 rPiece.weather = 0;
 rPiece.roadConditions = 0;

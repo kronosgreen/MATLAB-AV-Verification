@@ -8,7 +8,8 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     
     [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
 
-    %poseRecord = record(drScn)
+    poseRecord = record(drScn);
+    poseRecord.ActorPoses(1).Position(1)
 
     hFigure = figure;
     hFigure.Position(3) = 900;

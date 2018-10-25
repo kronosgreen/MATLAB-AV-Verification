@@ -6,8 +6,6 @@ function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createCloth
 % Open file for stat collecting
 fid = fopen('thetas_accuracy_data.txt', 'a');
 
-% get variables
-
 % check if curvature is changing signs, negative to positive or positive to
 % negative
 % also check to see if they are the same, in which case, an arc will be
@@ -29,7 +27,7 @@ global LANE_WIDTH;
 disp("CLOTHOID CURVATURE FROM " + startCurvature + " TO " + endCurvature);
 
 % how many points make up the clothoid, including the starting point
-N = 10;
+N = 6;
 
 % array to store thetas, or change in direction at each point
 thetas = zeros(1,N);
@@ -70,10 +68,10 @@ for i=p_start:N
     R_c = 1 / k_c;
     
     % End length
-    s_c = vpa(length_start + (i - 1) * length_iter);
+    s_c = length_start + (i - 1) * length_iter;
     
     % scaling factor
-    a = vpa(sqrt(2 * R_c * s_c));
+    a = sqrt(2 * R_c * s_c);
     
     % get point on clothoid 
     x = a * fresnels(s_c/a);
@@ -82,14 +80,20 @@ for i=p_start:N
     clothoidPoints(i,:) = [x y 0];
     
     % change in facing tangent
-    theta = double(mod((s_c/a)^2, 2*pi));
+    theta = double(mod(s_c/(2*R_c), 2*pi));
     
     % get change in facing tangent from atan to check accuracy
     if i > 1
         actualTheta = pi/2 - atan2( clothoidPoints(i,2)-clothoidPoints(i-1,2), clothoidPoints(i,1)-clothoidPoints(i-1,1) );
         actualTheta = double( mod( actualTheta, 2*pi ));
-        change = double( ( actualTheta - theta ) / theta );
-        fprintf(fid, '%d | %f | %f | %f | %f | %.2f \n', i, startCurvature, endCurvature, actualTheta, theta, change);
+        change = double( actualTheta / theta );
+        fprintf(fid, '%d ', i);
+        if i < 10, fprintf(fid, ' '); end
+        fprintf(fid, '| %f ', startCurvature);
+        if startCurvature >= 0, fprintf(fid, ' '); end
+        fprintf(fid, '| %f ', endCurvature);
+        if endCurvature >= 0, fprintf(fid, ' '); end
+        fprintf(fid, '| %f | %f | %.2f \n',  actualTheta, theta, change);
     end
     
     thetas(i) = theta;

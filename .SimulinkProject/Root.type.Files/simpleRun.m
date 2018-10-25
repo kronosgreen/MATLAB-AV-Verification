@@ -2,19 +2,17 @@ close all
 clear
 clc
 
-delete("thetas_accuracy_data.txt");
-
 % Set up global variables
 setGlobalVars();
 
 % Set Simulation Run Parameters
 
 % Num of simulations to run in parallel
-NUM_SIMULATIONS = 5;
+NUM_SIMULATIONS = 1;
 % Num of road pieces to place in scenario
-LEN_ROAD = 30;
+LEN_ROAD = 4;
 % Num of actors to place in scenario (cars, pedestrians, etc.)
-NUM_ACTORS = 0;
+NUM_ACTORS = 2;
 
 runSimulations(NUM_SIMULATIONS, LEN_ROAD, NUM_ACTORS);
 

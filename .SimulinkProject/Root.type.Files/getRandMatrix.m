@@ -33,7 +33,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         end
         % Currently only multilane road is implemented
         % Determines which piece will be placed
-        roadType = 1;%randi(2);
+        roadType = randi(2);
         
         % Sets length of the road in meters,
         % ranges from 80 to 150
@@ -104,6 +104,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
             continueDirection = randi(3);
         end
         intersectionPattern = [intersectionPattern int2str(continueDirection)];
+        
         bidirChanged = roadType == 2 && ((intersectionPattern(continueDirection) == '0') ~= bidirectional);
         % Convert to string so that it occupies one column in the matrix
         intersectionPattern = string(intersectionPattern);
