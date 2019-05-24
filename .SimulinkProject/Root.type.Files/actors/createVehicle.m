@@ -1,4 +1,4 @@
-function [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorStruct, posIndex)
+function [vehicleCreated, actors, pieces, ac, newPath, newSpeeds] = createVehicle(drScn, actors, pieces, actorStruct, posIndex)
 %CREATEVEHICLE Creates vehicle based on given parameters and generates
 %path and speed based on generated road
 
@@ -37,6 +37,10 @@ newPath = [];
 newSpeeds = [];
 % order of path placement for now
 pathOrder = 1;
+
+if pathType == 3 && length(drScn.Actors) < 2
+    pathType = randi(2);
+end
 % base path on path type
 switch(pathType)
     
@@ -99,7 +103,6 @@ switch(pathType)
                 
             end % end road pieces for loop
             
-
         else
 
             % Create Reverse Path
@@ -164,7 +167,7 @@ switch(pathType)
                 end % end if check for non road piece
                 
             end % end road for loop
-
+        
         end % end if forward/reverse
        
 
@@ -300,7 +303,27 @@ switch(pathType)
             dirOffset = 2*pi * rand();
             newPath(n:n+2) = newPath(n:n+2) + offset * [cos(dirOffset) sin(dirOffset) 0];
         end
+    
         
+    %
+    % Platooning
+    %
+    % - will send vehicle behind previous vehicle
+    
+    case 3
+        
+        disp("Platooning")
+        
+        followDist = ac.Length + 3;
+        
+        prevPath = actors(length(actors)).path;
+        prevSpeeds = actors(length(actors)).speeds;
+        
+        angle = atan2(prevPath(2,2) - prevPath(1,2), prevPath(2,1) - prevPath(1,1));
+        newPoint = prevPath(1,:) - followDist * [cos(angle) sin(angle) 0];
+        
+        newPath = [newPoint; prevPath];
+        newSpeeds = [prevSpeeds(1) prevSpeeds];
         
 end % end switch
 
@@ -309,7 +332,16 @@ end % end switch
 if ~isempty(newPath)
     newPath = [newPath; 1000 1000 1000];
     newSpeeds = [newSpeeds 10];
+    vehicleCreated = 1;
+else
+    disp("PATH IS EMPTY");
+    vehicleCreated = 0;
 end
+
+newAct.path = newPath;
+newAct.speeds = newSpeeds;
+
+actors = [actors; newAct];
 
 end % end function
 

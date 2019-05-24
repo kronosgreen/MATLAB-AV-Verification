@@ -105,26 +105,19 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         
         if bidirectional
             % determines whether to account for a mid turn lane when
-            % calculating lane index
-            
-                mid = (midTurnLane || pieces(length(pieces)).midTurnLane);
+            % calculating lane index            
+            mid = (midTurnLane || pieces(length(pieces)).midTurnLane);
             
             if midTurnLane && ~pieces(length(pieces)).midTurnLane
             % mid turn lane to no mid turn lane
-
                 midLaneWidth = LANE_WIDTH * (numPieces - i) / numPieces;
-                
             elseif ~midTurnLane && pieces(length(pieces)).midTurnLane
             % no mid turn lane to mid turn lane
-
                 midLaneWidth = LANE_WIDTH * i / numPieces;
-
             else
             % both mid turn lanes or neither
             % if neither, will get overwritten
-
                 midLaneWidth = LANE_WIDTH;
-
             end   
             
             if midLaneWidth < 0.5
@@ -133,6 +126,12 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
             widths(largerLaneNum+1) = midLaneWidth;
             % will only subtract if mid lane exists
             availableWidth = availableWidth - mid * midLaneWidth;
+            
+            % error here not sure why
+            if smallerLaneNum > largerLaneNum
+                smallerLaneNum = largerLaneNum;
+            end
+            
             for b = 1:smallerLaneNum
                 % road to left of mid turn lane
                 widths(largerLaneNum - b + 1) = LANE_WIDTH;
@@ -229,7 +228,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
             
         end % end 1-way road (~bidirectional)
         
-        % Create spec
+        % Create spec - taking out for test
         ls = lanespec(totalLanes,'Width',widths,'Marking',lm);
         % Place road piece in scene
         road(drScn, [oldPoint; newPoint], 'Lanes', ls);

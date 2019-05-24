@@ -10,4 +10,7 @@ LANE_WIDTH = 3;
 global TRANSITION_PIECE_LENGTH;
 TRANSITION_PIECE_LENGTH = 12;
 
+global fid;
+fid = fopen("placedRoadNet.txt", "a");
+
 end

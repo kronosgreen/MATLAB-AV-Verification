@@ -97,7 +97,7 @@ centerHeight = max([lWidth rWidth]) + lengthAlpha;
 % Start - End Points
 % Setting up the points for each road going into the intersection
 bRoadPoints = [inPoint; (inPoint + (length/2 + 4) * [cos(facing) sin(facing) 0])];
-tRoadPoints = [bRoadPoints(2,:) + centerHeight * [cos(facing) sin(facing) 0]; 0 0 0];
+tRoadPoints = [bRoadPoints(2,:) + (centerHeight * [cos(facing) sin(facing) 0]); 0 0 0];
 tRoadPoints(2,:) = tRoadPoints(1,:) + (length/2 + 4) * [cos(facing) sin(facing) 0];
 
 % sets where the left and right roads going into it will line up since they
@@ -196,7 +196,9 @@ if rDirection == 1, rRoadPoints = flipud(rRoadPoints); end
 
 % Create Center Road Area
 try
-    road(drScn, centerRoadPoints, centerWidth);
+    % Making the width a little bit smaller to avoid an intersection with
+    % the right or left roads keeping them from being placed
+    road(drScn, centerRoadPoints, centerWidth - 0.01);
     % plot center space
     plot(centerRoadPoints(:,1),centerRoadPoints(:,2));
     cenBorder = centerRoadPoints(1,1:2) + centerWidth/2 * [cos(facing-pi/2) sin(facing-pi/2)];

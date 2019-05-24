@@ -34,7 +34,7 @@ thetas = zeros(1,N);
 
 % rate of change of curvature, is the constant used to determine the
 % clothoid, as it remains at the same rate throughout the curve
-d_k = abs(endCurvature - startCurvature) / length;
+d_k = vpa(abs(endCurvature - startCurvature) / length);
 
 % starting length
 length_start = min(abs(startCurvature), abs(endCurvature)) / d_k;
@@ -80,15 +80,24 @@ for i=p_start:N
     clothoidPoints(i,:) = [x y 0];
     
     % change in facing tangent
-    %theta = double(mod(s_c/(2*R_c), 2*pi));
+    theta = double(mod(s_c/(2*R_c), 2*pi));
     
     % get change in facing tangent from atan to check accuracy
     if i > 1
         actualTheta = pi/2 - atan2( clothoidPoints(i,2)-clothoidPoints(i-1,2), clothoidPoints(i,1)-clothoidPoints(i-1,1) );
         actualTheta = double( mod( actualTheta, 2*pi ));
-        thetas(i) = actualTheta;
-        thetas(i-1) = actualTheta;
+        %theta = actualTheta;
+        %change = double( actualTheta / theta );
+        %fprintf(fid, '%d ', i);
+        %if i < 10, fprintf(fid, ' '); end
+        %fprintf(fid, '| %f ', startCurvature);
+        %if startCurvature >= 0, fprintf(fid, ' '); end
+        %fprintf(fid, '| %f ', endCurvature);
+        %if endCurvature >= 0, fprintf(fid, ' '); end
+        %fprintf(fid, '| %f | %f | %.2f \n',  actualTheta, theta, change);
     end
+    
+    thetas(i) = theta;
     
 end
 
@@ -113,12 +122,7 @@ end
 % rotate 90 degrees clockwise
 if abs(startCurvature) > abs(endCurvature)
 
-    if shifted
-        disp("Cloth: Shift n Flip"); 
-        thetas(N) = pi/2 - atan2( clothoidPoints(N,2)-clothoidPoints(N-1,2), clothoidPoints(N,1)-clothoidPoints(N-1,1) );
-    else
-        disp("Cloth: Flip");
-    end
+    if shifted, disp("Cloth: Shift n Flip"); thetas(N) = pi/2 - atan2( clothoidPoints(N,2)-clothoidPoints(N-1,2), clothoidPoints(N,1)-clothoidPoints(N-1,1) ); else, disp("Cloth: Flip"); end
     
     R = [cos(thetas(N)) -sin(thetas(N)); sin(thetas(N)) cos(thetas(N))];
 

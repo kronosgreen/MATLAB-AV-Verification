@@ -27,12 +27,15 @@
     % Get transition Size
     global TRANSITION_PIECE_LENGTH;
     
+    % Get testing file
+    global fid;
+    
     % get original parameters stored
     oldFacing = facing;
     oldInPoint = inPoint;
     
     % Set up new inpoint to be where the transition piece would put it
-    if roadType == 1, inPoint = inPoint + TRANSITION_PIECE_LENGTH * [cos(facing) sin(facing) 0]; end
+    if roadType == 1, inPoint = inPoint + (TRANSITION_PIECE_LENGTH * [cos(facing) sin(facing) 0]); end
     
     % Also set up lane markings & specifications
     % Start off left side of the road with a solid white line
@@ -128,9 +131,9 @@
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
                 createArc(roadPoints, inPoint, facing, length/3, curvature1, lanes, bidirectional, midTurnLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createClothoid(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length/3, lanes, bidirectional, midTurnLane, curvature1, curvature2);
-            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createArc(roadPoints(1:size(roadPoints,1)-1,:), inPoint, facing, length/3, curvature2, lanes, bidirectional, midTurnLane);
+                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ... %(1:size(roadPoints,1)-1,:)
+                createArc(roadPoints, inPoint, facing, length/3, curvature2, lanes, bidirectional, midTurnLane);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     end
@@ -178,6 +181,13 @@
         disp("@ Multi Lane Road : Could Not Place Piece");
         inPoint = oldInPoint;
         facing = oldFacing;
+        try
+            fprintf(fid, "%d,", roadStruct(1));
+        catch
+            disp("Error printing");
+            fid = fopen("placedRoadNet.txt","a");
+            fprintf(fid, "%d,", roadStruct(1));
+        end
         return
     end
     

@@ -1,18 +1,16 @@
-function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
-
+function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     %% Ego Vehicle
     % Creates Ego Vehicle and assigns it the ego path, as well as the speed
     % limits of the road
     
     disp("CREATING EGO VEHICLE");
     egoStruct =  [1 1 1 0 10 10 10 0 1 0];
-    [pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, pieces, egoStruct, 1);           
-    egoCar.ActorID = 1;
+    actors = [];
+    
+    [vc, actors, pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, actors, pieces, egoStruct, 1);
     
     trajectory(egoCar,ep(1:size(ep,1)-1,:),egoSpeeds(1:size(egoSpeeds,2)-1));
-    
-    vehicles = egoCar;
-    
+
     %% Create Actors
     
     % newActor = [actorType pathType carType movSpeed dimensions startLoc forward];
@@ -36,9 +34,11 @@ function [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                 % Vehicle
                 disp('Placing Vehicle');
                 
-                [pieces, ac, newPath, newSpeeds] = createVehicle(drScn, pieces, actorMatrix(i,:), posIndex);
+                [vehicleCreated, actors, pieces, ac, newPath, newSpeeds] = createVehicle(drScn, actors, pieces, actorMatrix(i,:), posIndex);
                 
-                vehicles = vertcat(vehicles, ac);
+                if ~vehicleCreated
+                    continue;
+                end
                 
                 trajectory(ac, newPath, newSpeeds);
                 
