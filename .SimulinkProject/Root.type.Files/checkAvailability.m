@@ -30,7 +30,7 @@ function available = checkAvailability(pieces, botLeftCorner, topRightCorner, en
     testT = max(corners(:,2).');
     testB = min(corners(:,2).');
     
-    if pdist(endPoints, 'euclidean') < (length*3/sqrt(2)-10)
+    if pdist(endPoints, 'euclidean') < (length/sqrt(2)-10)
         disp("Too close to end");
         available = false;
         return

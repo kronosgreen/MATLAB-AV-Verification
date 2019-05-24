@@ -127,14 +127,12 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % Potential Parameters
         % - parameters that will be put in for additional pieces
         gate = randi(2) - 1;
-        % pedestrians
         pedestrian_walkway = randi(3);
         % should include all possibilities
         % maybe separated and made into patches
         outside_area = randi(10); % random obstacles layed out across open area
         intersecting_pathways = randi(30);
         
-        % 
         
         
         roadMatrix(i,:) = newRoad;

@@ -6,10 +6,10 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
 
     [drScn, pieces] = matrix2road2(drScn, roadMatrix);
 
-    [vehicles, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
+    [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
 
-    %poseRecord = record(drScn)
-
+    %poseRecord = record(drScn);
+    %poseRecord.ActorPoses(1).Position(1);
 
     hFigure = figure;
     hFigure.Position(3) = 900;
@@ -17,7 +17,7 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     hPanel1 = uipanel(hFigure,'Units','Normalized','Position',[0 1/4 1/2 3/4],'Title','Scenario Plot');
     hPanel2 = uipanel(hFigure,'Units','Normalized','Position',[0 0 1/2 1/4],'Title','Chase Plot');
     hPanel3 = uipanel(hFigure,'Units','Normalized','Position',[1/2 0 1/2 1],'Title','Bird''s-Eye Plot');
-
+    
     hAxes1 = axes('Parent',hPanel1);
     hAxes2 = axes('Parent',hPanel2);
     hAxes3 = axes('Parent',hPanel3);

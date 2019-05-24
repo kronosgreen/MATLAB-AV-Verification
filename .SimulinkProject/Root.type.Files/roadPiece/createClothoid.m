@@ -3,7 +3,8 @@ function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createCloth
 %end curvature, and a facing direction. Returns points for driving paths as
 %well
 
-% get variables
+% Open file for stat collecting
+%fid = fopen('thetas_accuracy_data.txt', 'a');
 
 % check if curvature is changing signs, negative to positive or positive to
 % negative
@@ -23,10 +24,10 @@ end
 % get global lane width
 global LANE_WIDTH;
 
-disp("CURVATURE FROM " + startCurvature + " TO " + endCurvature);
+disp("CLOTHOID CURVATURE FROM " + startCurvature + " TO " + endCurvature);
 
 % how many points make up the clothoid, including the starting point
-N = 7;
+N = 6;
 
 % array to store thetas, or change in direction at each point
 thetas = zeros(1,N);
@@ -79,42 +80,54 @@ for i=p_start:N
     clothoidPoints(i,:) = [x y 0];
     
     % change in facing tangent
-    theta = (s_c/a)^2;
+    %theta = double(mod(s_c/(2*R_c), 2*pi));
     
-    thetas(i) = theta;
+    % get change in facing tangent from atan to check accuracy
+    if i > 1
+        actualTheta = pi/2 - atan2( clothoidPoints(i,2)-clothoidPoints(i-1,2), clothoidPoints(i,1)-clothoidPoints(i-1,1) );
+        actualTheta = double( mod( actualTheta, 2*pi ));
+        thetas(i) = actualTheta;
+        thetas(i-1) = actualTheta;
+    end
     
 end
+
+%fclose(fid);
 
 %% Adjust points back to zero if not starting at zero
 if length_start ~= 0
     
     shiftPoint = clothoidPoints(1,1:2);
-    shiftTheta = thetas(1);
+    shiftTheta = mod(thetas(1), 2*pi);
     
     clothoidPoints(:,1:2) = clothoidPoints(:,1:2) - shiftPoint;
-    % Counter Clockwise Rotation Matrix
-    R = [cos(shiftTheta) sin(shiftTheta); -sin(shiftTheta) cos(shiftTheta)];
     
-    for i=1:N
-        clothoidPoints(i,1:2) = clothoidPoints(i,1:2)*R;
-        thetas(i) = thetas(i) - shiftTheta;
-    end
+    shifted = 1;
     
+else
+    shifted = 0;
 end
 
 %% Adjust points for a decreasing curvature
 % have to flip over the x axis, shift back to 0 using the last point, and
 % rotate 90 degrees clockwise
 if abs(startCurvature) > abs(endCurvature)
+
+    if shifted
+        disp("Cloth: Shift n Flip"); 
+        thetas(N) = pi/2 - atan2( clothoidPoints(N,2)-clothoidPoints(N-1,2), clothoidPoints(N,1)-clothoidPoints(N-1,1) );
+    else
+        disp("Cloth: Flip");
+    end
     
-    R = [cos(theta) -sin(theta); sin(theta) cos(theta)];
-    
+    R = [cos(thetas(N)) -sin(thetas(N)); sin(thetas(N)) cos(thetas(N))];
+
+    disp("ROTATE BY :" + thetas(N));
     clothoidPoints(:,2) = -clothoidPoints(:,2);
     clothoidPoints(:,1:2) = [(clothoidPoints(:,1)-clothoidPoints(N,1)) (clothoidPoints(:,2)-clothoidPoints(N,2))];
-    for i=1:N
-        clothoidPoints(i,1:2) = [clothoidPoints(i,1) clothoidPoints(i,2)]*R;
-    end
-    % flip all the coordinates, since they are all now reversed
+    for i=1:N, clothoidPoints(i,1:2) = [clothoidPoints(i,1) clothoidPoints(i,2)]*R; end
+    
+   % flip all the coordinates, since they are all now reversed
     clothoidPoints = flipud(clothoidPoints);
     
     % update thetas
@@ -124,13 +137,35 @@ if abs(startCurvature) > abs(endCurvature)
     end
     thetas = flpThetas;
     
+    flipped = 1;
+    
+else
+    flipped = 0;
+end
+
+%% Extra Alignment
+
+if shifted && ~flipped
+    disp("Cloth: Shifted");
+    for i=1:N
+        % Counter Clockwise Rotation Matrix
+        R = [cos(shiftTheta) sin(shiftTheta); -sin(shiftTheta) cos(shiftTheta)];
+        
+        clothoidPoints(i,1:2) = clothoidPoints(i,1:2)*R;
+        thetas(i) = thetas(i) - shiftTheta;
+        
+    end
 end
 
 %% adjust points for negative direction, flip over y axis
 if startCurvature < 0 || endCurvature < 0
-    thetas(:) = -1.5 * thetas(:);
+    thetas(:) = -thetas(:);
     clothoidPoints(:,1) = -clothoidPoints(:,1);
     
+    negative = 1;
+    
+else
+    negative = 0;
 end
 
 %% Set up Forward and Reverse paths
@@ -140,9 +175,8 @@ for i=1:N
     if bidirectional
         for j=1:lanes
             lanePoint = clothoidPoints(i,:) + ...
-                [cos(-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
-                sin(-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
-                0];
+                (LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1)))* ...
+                [cos(-thetas(i)) sin(-thetas(i)) 0];
             forwardPaths(j,3*i-2:3*i) = lanePoint;
 
             lanePoint = clothoidPoints(i,:) + ...
@@ -187,10 +221,11 @@ end
 %% update values
 
 % update facing
-facing =  atan2( clothoidPoints(N,2)-clothoidPoints(N-1,2), clothoidPoints(N,1)-clothoidPoints(N-1,1) );
-facing = mod(facing, 2*pi);
+facing = mod( atan2( clothoidPoints(N,2)-clothoidPoints(N-1,2), clothoidPoints(N,1)-clothoidPoints(N-1,1) ), 2*pi );
+
 % update inPoint
 inPoint = clothoidPoints(N,:);
+
 %update road points with new curve points
 roadPoints = [roadPoints; clothoidPoints; inPoint];
 

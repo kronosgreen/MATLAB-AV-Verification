@@ -1,5 +1,14 @@
-function [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, pathType, speed, forward, dimensions, posIndex)
+function [ac, newPath, newSpeeds] = createPedestrian(drScn, pieces, actorStruct, posIndex)
 %CREATEPEDESTRIAN Create pedestrian function
+
+% Get lane width
+global LANE_WIDTH;
+
+% Get Variables
+pathType = actorStruct(3);
+speed = actorStruct(4);
+forward = actorStruct(9);
+dimensions = actorStruct(5:7);
 
 %Get dimensions
 pLen = (dimensions(1) + 40) / 45;
@@ -80,6 +89,26 @@ switch(pieces(posIndex).type)
             startPoint = midPoint + pieces(posIndex).width/2 * [cos(facingDir - pi/2) sin(facingDir - pi/2) 0];
             
         end
+    
+    % MultiLane Road
+    case 2
+        
+        % Number - Road to cross - index in roadPoints - direction
+        % 1 -  left   - 3 - (facing - pi/2) : ->
+        % 2 -  top    - 5 - (facing +- pi) : v
+        % 3 -  right  - 7 - (facing + pi/2): <-
+        % 4 -  bottom - 2 - facing : ^
+        crossingRoad = randi(4);
+        
+        % Set up Facing direction of road to cross, always points inwards
+        faceDiffs = [-pi/2 pi pi/2 0];
+        facingDir = mod( pieces(posIndex).facing + faceDiffs(crossingRoad), 2*pi );
+        
+        % Set up Starting Point
+        midPoint = pieces(posIndex).roadPoints(mod(crossingRoad*2,7)+1,:);
+        % Get width of road being crossed (temp)
+        roadWidth = LANE_WIDTH * 5;
+        startPoint = midPoint + roadWidth/2 * [cos(facingDir-pi/2+pi*(forward==1)) sin(facingDir-pi/2+pi*(forward==1)) 0];
                 
 end % end switch - road type
 
@@ -147,5 +176,12 @@ switch(pathType)
         newSpeeds = [stallSpeed (speed+9)/4 0 (speed+9)/4];
         
 end % end switch
+
+% Add far off point to continue simulation after vehicle path
+% done
+if ~isempty(newPath)
+    newPath = [newPath; 1000 1000 1000];
+    newSpeeds = [newSpeeds 10];
+end
 
 end % end function

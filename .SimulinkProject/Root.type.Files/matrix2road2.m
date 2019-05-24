@@ -8,6 +8,8 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
 
     close all
     
+    global fid;
+    
     inPoint = [0 0 0];
     facing = pi/2;
     pieces = [];
@@ -35,26 +37,28 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     
     % ROAD MATRIX
     %
-    %   [roadPiece roadLength lanes egoLane bidirectional speedLimit roadSlickness]
+    %   Assertion : [roadType roadLength lanes bidirectional midLane speedLimit intersectionPattern curvature1 curvature2]
     for i = 1:size(roadMatrix,1)
+        
+        disp("Road #" + i);
+        % for data collecting
         switch roadMatrix(i,1)
+            
             case 1
-                %multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
-                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+                % multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
+                try
+                    [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+                catch
+                    fprintf(fid,"error: [%d %d %d %d %d %d %d %d %d],",roadMatrix(i,1), roadMatrix(i,2), ...
+                        roadMatrix(i,3),roadMatrix(i,4),roadMatrix(i,5), roadMatrix(i,6), roadMatrix(i,7), ...
+                        roadMatrix(i,8), roadMatrix(i,9));
+                end
             case 2
-                %roundabout
-
-            case 3
-                %intersection
-
-            case 4
-                %fork
-
-            case 5
-                %idk
-                
+                % 4-way intersection
+                [facing, inPoint, pieces] = fourWayIntersection(drScn, inPoint, facing, pieces, roadMatrix(i, :));
         end % end switch
         
     end % end for loop
    
+    
 end % end function

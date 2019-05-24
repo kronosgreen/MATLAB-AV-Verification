@@ -23,6 +23,7 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     % Parfor giving errors where variables are empty w/ size 0 0 
     %for i=0:numSimulations
         [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, 0);
+        rMatrix = [1 70 2 2 1 2.905760e+01 1123 2.345400e-02 2.755700e-02];
 
         %disp(vpa(rMatrix))
         % set_param('AV_Verification_System/Main_Program',
