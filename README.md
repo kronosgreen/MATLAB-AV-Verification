@@ -20,22 +20,40 @@ The toolboxes can be installed while setting up MATLAB, or you can continue thro
 
 ### Setting Up
 
-Set up the GitHub project in your own directory by locating the MATLAB/Projects folder, often in the Documents folder and call `git clone https://github.com/kronosgreen/MATLAB-AV-Verification.git` or do so from GitHub by downloading and extracting to the aforementioned folder.
+To set up the project in your own directory, download it into the *MATLAB/Projects* folder. This can either be done by calling `git clone https://github.com/kronosgreen/MATLAB-AV-Verification.git` from inside the folder, or by downloading it from the website and extracting it to said folder. 
 
 To open the folder from inside MATLAB, a few options are available. You can use the file explorer on the left bar. Alternatively, you could open a file using the *Open* button (or *Ctrl + O*) on the Home tab which will open the including folder in said left bar. 
 
 ## Running Simulation
 
-Once in MATLAB, go to .SimulinkProject > Root.type.Files. That is where all of <br/>
-the scene generator files can be located. If the folders for road pieces and actors<br/>
-are transparent, be sure to right click and add to path. 
+Once in MATLAB, go to .SimulinkProject > Root.type.Files. That is where all of the scene generator files can be located. If the folders for road pieces and actors are transparent, be sure to right click and add to path, otherwise the functions inside will not be callable. 
 
 In order to run a randomly generated simulation, you will interface with the simpleRun.m file where you can adjust how many road pieces and actors will be randomly fed into the scene. That amount may not show up in the actual simulation as some of them can fail to be placed if they logically interfere with any of the previously placed pieces. You can press run from this file with the default parameters to see how a randomly generated scenario runs. 
 
-<!--
+Playing around with these simple parameters can generate completely random scenarios, but for more custom scenarios, you have to create your own matrices to define the roads and actors. Within these matrices, each row defines a new road piece or actor, and each column describes a certain trait of said piece or actor, from curvature to speed limit and from vehicle type to moving behavior. The random matrices are created in *getRandMatrix.m*, so, to limit only a single parameter, you can go in here and adjust the line corresponding with that parameter getting its random value. 
+
 ### Road Pieces
-The road pieces designed are made to be as general as possible in order to maximize coverage which will ultimately allow the scenario generation framework to create all possible roads. Each new piece will bring with it a million new possible roads, but for all pieces to be de
--->
+
+The road pieces that make up the scenarios are made to be as general as possible in order to maximize coverage with the goal of eventually being able to create all possible roads. Each new piece will bring with it a million new possible roads making the definition of these roads a large ongoing effort. With new pieces, new parameters will have to be defined and old ones redefined, meaning the current parameters may not be totally representative of later iterations. It should also be noted that certain parameters may have different meanings in different road pieces, as each piece will have needs specific to them. 
+
+#### Current Parameters
+- Road Type
+- Length
+- Lanes
+- Bidirectional
+- Mid-Lane
+- Speed Limit
+- Intersection Pattern
+- Curvature 1
+- Curvature 2
+
+#### Multi-lane Road
+
+The multi-lane road piece is one of variable length and width that can take on virtually all geometries with G2 continuity, something that is desired when designing real roads. It achieves this by making permutations of three geometric primitives:  lines, clothoids, and arcs, using the clothoid to transition between different curvatures at a constant rate. The parameters determining the geometry of the road are curvature1 and curvature2. If either of them are zero, the road is made of a line to a clothoid to an arc, where the arc is the non-zero value. If both are zero, a straight line is made. And if both are non-zero values, then either a Clothoid-Arc-Clothoid (0 to curvature1 to curvature2) or an Arc-Clothoid-Arc (curvature1 to curvature2) is generated, the current deciding factor between the two being random. By composing the roads using these three primitives, the permutations should make up most all possible roads. The length of each of the three parts is one third of the total length given from the determining matrix row.
+
+#### 4-Way Intersection
+
+The 4-Way intersection creates a perpendicular intersection where each road can have its own number of lanes and direction of travel. They are placed across from each other around a central rectangle calculated by using the widths of all four roads. Once placed, the paths are determined by distributing the possible directions to each lane, starting with left turns if possible, and following with right, and then forward. This is for the direction on the intersection that connects with the previous road piece, as that is the one that matters most for the ego vehicle. 
 
 ## Deployment
 
