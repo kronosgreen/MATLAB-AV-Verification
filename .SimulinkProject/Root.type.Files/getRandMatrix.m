@@ -33,7 +33,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         end
         % Currently only multilane road is implemented
         % Determines which piece will be placed
-        roadType = randi(2);
+        roadType = 2;%randi(2);
         
         % Sets length of the road in meters,
         % ranges from 80 to 150
@@ -110,32 +110,29 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         intersectionPattern = string(intersectionPattern);
         
         % TalTech Parameters
-        radius = randi(5) + 5;
-        outer_radius = randi(5) + 5;
+        %radius = randi(5) + 5;
+        %outer_radius = randi(5) + 5;
         
-        outgoing_angles = ;
+        %outgoing_angles = ;
         % side lot
-        barrier = randi(10);
-        outgoing_lanes = randi(3);
+        %barrier = randi(10);
+        %outgoing_lanes = randi(3);
         
-        
+        % radius outer_radius outgoing_angles barrier outgoing_lanes
         % places all values in a row that will be appended to the main road
         % matrix
-        newRoad = [roadType roadLength lanes bidirectional midLane speedLimit
-            intersectionPattern curvature1 curvature2 radius outer_radius outgoing_angles barrier outgoing_lanes];
+        newRoad = [roadType roadLength lanes bidirectional midLane speedLimit intersectionPattern curvature1 curvature2];
         
         % Potential Parameters
         % - parameters that will be put in for additional pieces
-        gate = randi(2) - 1;
+        %gate = randi(2) - 1;
         % pedestrians
-        pedestrian_walkway = randi(3);
+        %pedestrian_walkway = randi(3);
         % should include all possibilities
         % maybe separated and made into patches
-        outside_area = randi(10); % random obstacles layed out across open area
-        intersecting_pathways = randi(30);
-        
-        % 
-        
+        %outside_area = randi(10); % random obstacles layed out across open area
+        %intersecting_pathways = randi(30);
+
         
         roadMatrix(i,:) = newRoad;
     end
