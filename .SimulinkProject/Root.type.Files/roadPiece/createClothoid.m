@@ -1,10 +1,14 @@
-function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, lanes, bidirectional, midTurnLane, startCurvature, endCurvature)
+function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, ...
+                                                                                     lanes, bidirectional, midTurnLane, ...
+                                                                                     startCurvature, endCurvature)
 %CREATECLOTHOID Creates a clothoid line given a starting point, start and
 %end curvature, and a facing direction. Returns points for driving paths as
 %well
 
 % Open file for stat collecting
 %fid = fopen('thetas_accuracy_data.txt', 'a');
+
+if midTurnLane ~= 0, midTurnLane = 1; end
 
 % check if curvature is changing signs, negative to positive or positive to
 % negative

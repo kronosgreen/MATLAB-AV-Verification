@@ -12,7 +12,7 @@ global fid;
 % Num of simulations to run in parallel
 NUM_SIMULATIONS = 10;
 % Num of road pieces to place in scenario
-LEN_ROAD = 10; 
+LEN_ROAD = 1; 
 % Num of actors to place in scenario (cars, pedestrians, etc.)
 NUM_ACTORS = 0;
 % runSimulations(NUM_SIMULATIONS, LEN_ROAD, NUM_ACTORS);

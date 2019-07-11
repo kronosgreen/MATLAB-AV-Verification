@@ -1,9 +1,10 @@
 function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature, lanes, bidirectional, midTurnLane)
 %CREATEARC create an arc road piece, or a piece with a constant curvature,
 % otherwise part of a circle
-disp("ARC");
+
 % get lane width from global
 global LANE_WIDTH;
+if midTurnLane ~= 0, midTurnLane = 1; end
 
 % number of points desired in arc
 N = 5;

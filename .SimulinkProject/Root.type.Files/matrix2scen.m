@@ -7,7 +7,7 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     [drScn, pieces] = matrix2road2(drScn, roadMatrix);
 
     [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
-
+ 
     %poseRecord = record(drScn);
     %poseRecord.ActorPoses(1).Position(1);
 

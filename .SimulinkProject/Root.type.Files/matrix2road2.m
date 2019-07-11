@@ -32,6 +32,8 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = 0;
+    rPiece.pedPathWays = 0;
+    rPiece.showMarkers = 0;
     
     pieces = rPiece;
     
@@ -41,21 +43,32 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     for i = 1:size(roadMatrix,1)
         
         disp("Road #" + i);
+        
         % for data collecting
-        switch roadMatrix(i,1)
+        switch str2double(roadMatrix(i,1))
             
             case 1
                 % multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
-                try
-                    [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
-                catch
-                    fprintf(fid,"error: [%d %d %d %d %d %d %d %d %d],",roadMatrix(i,1), roadMatrix(i,2), ...
-                        roadMatrix(i,3),roadMatrix(i,4),roadMatrix(i,5), roadMatrix(i,6), roadMatrix(i,7), ...
-                        roadMatrix(i,8), roadMatrix(i,9));
-                end
+                % try
+                [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+                % catch
+                %    fprintf(fid,"error: [%d %d %d %d %d %d %d %d %d],",roadMatrix(i,1), roadMatrix(i,2), ...
+                %        roadMatrix(i,3),roadMatrix(i,4),roadMatrix(i,5), roadMatrix(i,6), roadMatrix(i,7), ...
+                %        roadMatrix(i,8), roadMatrix(i,9));
+                % end
             case 2
                 % 4-way intersection
                 [facing, inPoint, pieces] = fourWayIntersection(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+            case 3
+                % 3-way Intersection
+                [facing, inPoint, pieces] = threeWayIntersection(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+            case 4
+                % Single Pedestrian Crosswalk
+                [facing, inPoint, pieces] = singlePedestrianCrosswalk(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+            case 5
+                % Side Lot Enter
+                [facing, inPoint, pieces] = sideLotEnter(drScn, inPoint, facing, pieces, roadMatrix(i, :));
+                
         end % end switch
         
     end % end for loop

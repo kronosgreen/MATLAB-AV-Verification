@@ -70,7 +70,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % 1 - mid-turn lane
         % 2 - median
         % 3 - large median
-        midLane = 2;%randi(4) - 1;
+        midLane = randi(4) - 1;
         
         % Sets the speed limit for the road, when setting the paths, actors
         % will use this value to set their speed

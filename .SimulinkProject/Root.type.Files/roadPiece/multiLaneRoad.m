@@ -8,27 +8,27 @@
     disp("Starting Multi-Lane Road");
     
     % set up variables from struct
-    roadType = roadStruct(1);
-    length = roadStruct(2);
-    lanes = roadStruct(3);
-    bidirectional = roadStruct(4);
-    midTurnLane = roadStruct(5);
-    speedLimit = roadStruct(6);
-    curvature1 = roadStruct(8);
-    curvature2 = roadStruct(9);
+    roadType = str2double(roadStruct(1));
+    length = str2double(roadStruct(2));
+    lanes = str2double(roadStruct(3));
+    bidirectional = str2double(roadStruct(4));
+    midLane = str2double(roadStruct(5));
+    speedLimit = str2double(roadStruct(6));
+    curvature1 = str2double(roadStruct(8));
+    curvature2 = str2double(roadStruct(9));
+    pedPathWays = split(roadStruct(10), ':');
+    outlets = split(roadStruct(11), ':');
+    showMarkers = str2double(roadStruct(12));
     
     % Set up direction the road starts off going in by taking the 
     % facing parameter in radians and creating a vector
     dirVec = [cos(facing) sin(facing) 0];
     
-    % Get lane width
+    % Get Global Variables
     global LANE_WIDTH;
-    
-    % Get transition Size
+    oldLW = LANE_WIDTH;
     global TRANSITION_PIECE_LENGTH;
-    
-    % Get testing file
-    global fid;
+    global fid; % test file
     
     % get original parameters stored
     oldFacing = facing;
@@ -49,38 +49,148 @@
     
     if bidirectional
         roadWidth = 2 * lanes * LANE_WIDTH;
-        if midTurnLane
-            roadWidth = roadWidth + LANE_WIDTH;
-            % Surround mid-turn lane with dashed-solid lines
-            lm = vertcat(lm, [laneMarking('SolidDashed', 'Color', 'y');...
-                laneMarking('DashedSolid', 'Color', 'y')]);
-        else
-            if bidirectional == 1
-                % Split road with double solid yellow
-                lm = vertcat(lm, laneMarking('DoubleSolid', 'Color', 'y'));
-            elseif bidirectional == 2
-                % Split road with dashed yellow line
-                lm = vertcat(lm, laneMarking('Dashed', 'Color', 'y'));
-            end
+        switch midLane
+            case 0
+                % Nothing
+                if bidirectional == 1
+                    % Split road with double solid yellow
+                    lm = vertcat(lm, laneMarking('DoubleSolid', 'Color', 'y'));
+                elseif bidirectional == 2
+                	% Split road with dashed yellow line
+                    lm = vertcat(lm, laneMarking('Dashed', 'Color', 'y'));
+                end
+                
+                for i=1:lanes-1
+                    lm = vertcat(lm, laneMarking('Dashed', 'Color', 'w'));
+                end
+                
+                % end road with a solid white line
+                lm = vertcat(lm, laneMarking('Solid', 'Color', 'w'));
+
+                % Define lane specifications to be separated by LANE_WIDTH
+                ls = lanespec(lanes*2, 'Width', LANE_WIDTH, 'Marking', lm);
+                
+                % Set up Params for Geometry Construction
+                ln = lanes;
+                
+            case 1
+                % Mid-Turn Lane
+                roadWidth = roadWidth + LANE_WIDTH;
+                % Surround mid-turn lane with dashed-solid lines
+                lm = vertcat(lm, [laneMarking('SolidDashed', 'Color', 'y');...
+                    laneMarking('DashedSolid', 'Color', 'y')]);
+                
+                for i=1:lanes-1
+                    lm = vertcat(lm, laneMarking('Dashed', 'Color', 'w'));
+                end
+                
+                % end road with a solid white line
+                lm = vertcat(lm, laneMarking('Solid', 'Color', 'w'));
+
+                % Define lane specifications to be separated by LANE_WIDTH
+                ls = lanespec(lanes*2, 'Width', LANE_WIDTH, 'Marking', lm);
+                
+                % Set up Params for Geometry Construction
+                ln = lanes;
+                
+            case 2
+                % Small Median
+                % Median of size 1m, splitting the road at 10 degrees
+                % x|_\y   x = 1/(2*tan(0.17rad)) = 2.84m
+                %  .5*1m
+                
+                % Build Right Start
+                rightStart = [inPoint; ...
+                    (inPoint + 2*dirVec); ...
+                    (inPoint + 8*dirVec); ...
+                    (inPoint + 10*dirVec)];
+                % Shift all points right by 1/2 Width
+                rightStart = rightStart + 0.5*lanes*LANE_WIDTH*[cos(facing-pi/2) sin(facing-pi/2) 0];
+                % Shift top two points by 1/2 median width
+                rightStart(3:4,:) = rightStart(3:4,:) + 0.5*[cos(facing-pi/2) sin(facing-pi/2) 0];
+                
+                % Build Left Start
+                leftStart = [inPoint; ...
+                    (inPoint + 2*dirVec); ...
+                    (inPoint + 8*dirVec); ...
+                    (inPoint + 10*dirVec)];
+                % Shift all points right by 1/2 Width
+                leftStart = leftStart + 0.5*lanes*LANE_WIDTH*[cos(facing+pi/2) sin(facing+pi/2) 0];
+                % Shift top two points by 1/2 median width
+                leftStart(3:4,:) = leftStart(3:4,:) + 0.5*[cos(facing+pi/2) sin(facing+pi/2) 0];
+                
+                lm = [lm; laneMarking('Solid', 'Color', 'y')];
+                lm(1) = laneMarking('Solid','Color','y');
+
+                % Define lane specifications to be separated by LANE_WIDTH
+                ls = lanespec(lanes, 'Width', LANE_WIDTH, 'Marking', lm);
+                
+                % Set up Params for Geometry Construction
+                ln = oldLW * lanes - 1;
+                LANE_WIDTH = 1;
+                inPoint = inPoint + 10*dirVec;
+                
+            case 3
+                % Large Median
+                % Median of size 2m, splitting the road at 10 degrees
+                % x|_\y   x = 1/(2*tan(0.17rad)) = 5.67m
+                %  .5*2m
+                
+                % Build Right Start
+                rightStart = [inPoint; ...
+                    (inPoint + 2*dirVec); ...
+                    (inPoint + 8*dirVec); ...
+                    (inPoint + 10*dirVec)];
+                % Shift all points right by 1/2 Road Width
+                rightStart = rightStart + 0.5*lanes*LANE_WIDTH*[cos(facing-pi/2) sin(facing-pi/2) 0];
+                % Shift top two points by 1/2 median width
+                rightStart(3:4,:) = rightStart(3:4,:) + [cos(facing-pi/2) sin(facing-pi/2) 0];
+                
+                % Build Left Start
+                leftStart = [inPoint; ...
+                    (inPoint + 2*dirVec); ...
+                    (inPoint + 8*dirVec); ...
+                    (inPoint + 10*dirVec)];
+                % Shift all points right by 1/2 road Width
+                leftStart = leftStart + 0.5*lanes*LANE_WIDTH*[cos(facing+pi/2) sin(facing+pi/2) 0];
+                % Shift top two points by 1/2 median width
+                leftStart(3:4,:) = leftStart(3:4,:) + [cos(facing+pi/2) sin(facing+pi/2) 0];
+                
+                inPoint = leftStart(4,:);
+                
+                lm = [lm; laneMarking('Solid', 'Color', 'y')];
+                lm(1) = laneMarking('Solid','Color','y');
+                
+                % Define lane specifications to be separated by LANE_WIDTH
+                ls = lanespec(lanes, 'Width', LANE_WIDTH, 'Marking', lm);
+                
+                % Set up Params for Geometry Construction
+                ln = oldLW * lanes - 1;
+                LANE_WIDTH = 1;
+                inPoint = inPoint + 10*dirVec;
+                
         end
-        
-        % Finish off lanes on right side
-        for i=1:lanes-1
-            lm = vertcat(lm, laneMarking('Dashed', 'Color', 'w'));
-        end
+
     else 
+        % One Way Road
+        
         roadWidth = lanes * LANE_WIDTH;
+    
+        % end road with a solid white line
+        lm = vertcat(lm, laneMarking('Solid', 'Color', 'w'));
+
+        % Define lane specifications to be separated by LANE_WIDTH
+        ls = lanespec(lanes, 'Width', LANE_WIDTH, 'Marking', lm);
+        
+        % Set up parameters for geometry construction
+        ln = lanes;
+        
     end
-    
-    % end road with a solid white line
-    lm = vertcat(lm, laneMarking('Solid', 'Color', 'w'));
-    
-    % Define lane specifications to be separated by LANE_WIDTH
-    ls = lanespec(roadWidth/LANE_WIDTH, 'Width', LANE_WIDTH, 'Marking', lm);
     
     % Set up matrix to store corner points
     corners = zeros(4,3);
-    disp("CURVATURES: " + curvature1 + "," + curvature2);
+    
+    %disp("CURVATURES: " + curvature1 + "," + curvature2);
     % determine the line type
     if curvature1 == 0 && curvature2 == 0
         lineType = 0;
@@ -100,57 +210,60 @@
     % set up empty matrix for road points
     roadPoints = [];
     
-    % Create Curved Multilane Road
+    % Construct Multilane Road
+    
+    % Select Geometry
     switch lineType
         case 0
             disp("Straight Line");
             [roadPoints, forwardPaths, reversePaths, inPoint, facing] = ...
-                createStraightLine(roadPoints, inPoint, facing, length, roadStruct);
+                createStraightLine(roadPoints, inPoint, facing, length, ln, bidirectional, midLane);
         case 1
             disp("Line - Clothoid - Arc");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
-                createStraightLine(roadPoints, inPoint, facing, length/3, roadStruct);
+                createStraightLine(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, 0, curv);
+                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, 0, curv);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length/3, curv, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints, inPoint, facing, length/3, curv, ln, bidirectional, midLane);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
         case 2
             disp("Clothoid - Arc - Clothoid");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, 0, curvature1);
+                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, 0, curvature1);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length/3, curvature1, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints, inPoint, facing, length/3, curvature1, ln, bidirectional, midLane);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, curvature1, curvature2);
+                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, curvature1, curvature2);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
         case 3
             disp("Arc - Clothoid - Arc");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length/3, curvature1, lanes, bidirectional, midTurnLane);
+                createArc(roadPoints, inPoint, facing, length/3, curvature1, ln, bidirectional, midLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length/3, lanes, bidirectional, midTurnLane, curvature1, curvature2);
-            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ... %(1:size(roadPoints,1)-1,:)
-                createArc(roadPoints, inPoint, facing, length/3, curvature2, lanes, bidirectional, midTurnLane);
+                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, curvature1, curvature2);
+            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
+                createArc(roadPoints, inPoint, facing, length/3, curvature2, ln, bidirectional, midLane);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     end
    
+    % Reset LANE_WIDTH
+    LANE_WIDTH = oldLW;
+    
     % get original & new direction vector
     oldDirVec = [cos(oldFacing) sin(oldFacing) 0] * 2;
     newDirVec = [cos(facing) sin(facing) 0] * 2;
     
     % shift lane paths by oldDirVec
-    for i=1:lanes
-        for j=1:3:size(forwardPaths,2)
-            forwardPaths(i,j:j+2) = forwardPaths(i,j:j+2) + oldDirVec;
-        end
-        if bidirectional
-            for j=1:3:size(reversePaths,2)
-                reversePaths(i,j:j+2) = reversePaths(i,j:j+2) + oldDirVec;
-            end
+    for j=1:3:size(forwardPaths,2)
+        forwardPaths(1:lanes,j:j+2) = forwardPaths(1:lanes,j:j+2) + oldDirVec;
+    end
+    if bidirectional
+        for j=1:3:size(reversePaths,2)
+            reversePaths(1:lanes,j:j+2) = reversePaths(1:lanes,j:j+2) + oldDirVec;
         end
     end
     
@@ -181,7 +294,7 @@
         disp("@ Multi Lane Road : Could Not Place Piece");
         inPoint = oldInPoint;
         facing = oldFacing;
-        try
+         try
             fprintf(fid, "%d,", roadStruct(1));
         catch
             disp("Error printing");
@@ -190,13 +303,6 @@
         end
         return
     end
-    
-    hold on;
-    plot(roadPoints(:,1),roadPoints(:,2));
-    plot(forwardPaths(1,1:3:size(forwardPaths, 2)),forwardPaths(1,2:3:size(forwardPaths,2)));
-    if bidirectional, plot(reversePaths(1,1:3:size(forwardPaths, 2)),reversePaths(1,2:3:size(forwardPaths,2))); end
-    if bidirectional && lanes > 1, plot(reversePaths(2,1:3:size(forwardPaths, 2)),reversePaths(2,2:3:size(forwardPaths,2))); end
-    if lanes > 1, plot(forwardPaths(2,1:3:size(forwardPaths, 2)),forwardPaths(2,2:3:size(forwardPaths,2))); end
     
     % Transition the lane width from the previous piece to the current one
     % creating a new middle piece in the shape of a trapezoid.
@@ -207,7 +313,54 @@
     end
     
     % Create Road Piece in Scenario
-    road(drScn, roadPoints, 'Lanes', ls);
+    if midLane > 1 && bidirectional
+        % Set up Small Median Roads
+        pLength = size(forwardPaths,2)/3;
+        
+        rightPoints = reshape(forwardPaths(ceil(lanes/2)*LANE_WIDTH-1,:), [3,pLength]).';
+        reStart = rightPoints(size(rightPoints,1),:);
+        rightEnd = [reStart + newDirVec; ...
+                    reStart + 4 * newDirVec; ...
+                    reStart + 5 * newDirVec];
+        
+        leftPoints = flipud(reshape(reversePaths(ceil(lanes/2)*LANE_WIDTH-1,:), [3,pLength]).');
+        leStart = leftPoints(size(leftPoints,1),:);
+        leftEnd = [leStart + newDirVec; ...
+                    leStart + 4 * newDirVec; ...
+                    leStart + 5 * newDirVec];
+        
+        if midLane == 2
+            rightEnd(2:3,:) = rightEnd(2:3,:) + 0.5 * [cos(facing+pi/2) sin(facing+pi/2) 0];
+            leftEnd(2:3,:) = leftEnd(2:3,:) + 0.5 * [cos(facing-pi/2) sin(facing-pi/2) 0];
+        elseif midLane == 3
+            rightEnd(2:3,:) = rightEnd(2:3,:) + [cos(facing+pi/2) sin(facing+pi/2) 0];
+            leftEnd(2:3,:) = leftEnd(2:3,:) + [cos(facing-pi/2) sin(facing-pi/2) 0];
+        end            
+        
+        rightPoints = [rightStart; rightPoints; rightEnd];
+        leftPoints = [leftStart; roadPoints; leftEnd];
+        
+        hold on;
+        plot(rightPoints(:,1),rightPoints(:,2));
+        plot(leftPoints(:,1),leftPoints(:,2));
+        
+        forwardPaths
+        
+        road(drScn, leftPoints, 'Lanes', ls);
+        road(drScn, rightPoints, 'Lanes', ls);
+        
+    else
+        road(drScn, roadPoints, 'Lanes', ls);
+        
+        % Plot Paths 
+        hold on;
+        plot(roadPoints(:,1),roadPoints(:,2));
+        plot(forwardPaths(1,1:3:size(forwardPaths, 2)),forwardPaths(1,2:3:size(forwardPaths,2)));
+        if bidirectional, plot(reversePaths(1,1:3:size(forwardPaths, 2)),reversePaths(1,2:3:size(forwardPaths,2))); end
+        if bidirectional && lanes > 1, plot(reversePaths(2,1:3:size(forwardPaths, 2)),reversePaths(2,2:3:size(forwardPaths,2))); end
+        if lanes > 1, plot(forwardPaths(2,1:3:size(forwardPaths, 2)),forwardPaths(2,2:3:size(forwardPaths,2))); end
+        
+    end
     
     % Sets up parameters to pass into the road info array
     
@@ -219,7 +372,7 @@
     rPiece.length = length;
     rPiece.curvature1 = curvature1;
     rPiece.curvature2 = curvature2;
-    rPiece.midTurnLane = midTurnLane;
+    rPiece.midTurnLane = midLane;
     rPiece.bidirectional = bidirectional;
     rPiece.lanes = lanes;
     rPiece.forwardDrivingPaths = forwardPaths;
@@ -229,6 +382,8 @@
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = speedLimit;
+    rPiece.pedPathWays = pedPathWays;
+    rPiece.showMarkers = showMarkers;
     
     pieces = [pieces; rPiece];
 
