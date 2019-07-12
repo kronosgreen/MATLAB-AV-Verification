@@ -168,9 +168,9 @@ end
    %     newRoad = [roadType, roadLength, lanes, bidirectional, midLane, speedLimit, ...
                     ... %   7                8        9             10          11        12 
         %            intersectionPattern, curvature1, curvature2, pedPathWays, outlets, showMarkers];
-leftAssertion = [2 length/2 lLanes int8(lDirection == 0) 0 speedLimit lDirection 0 0 "0" "0" showMarkers];
-topAssertion = [2 length/2 tLanes int8(tDirection == 0) 0 speedLimit tDirection 0 0 "0" "0" showMarkers];
-rightAssertion = [2 length/2 rLanes int8(rDirection == 0) 0 speedLimit rDirection 0 0 "0" "0" showMarkers];
+leftAssertion = [2 length/2 lLanes (lDirection == 0) 0 speedLimit lDirection 0 0 "0" "0" showMarkers];
+topAssertion = [2 length/2 tLanes (tDirection == 0) 0 speedLimit tDirection 0 0 "0" "0" showMarkers];
+rightAssertion = [2 length/2 rLanes (rDirection == 0) 0 speedLimit rDirection 0 0 "0" "0" showMarkers];
 bottomAssertion = [2 length/2 bLanes bidirectional 0 speedLimit 0 0 0 "0" "0" showMarkers];
 
 % Create Transition Piece
@@ -192,6 +192,7 @@ if rDirection == 1, rRoadPoints = flipud(rRoadPoints); end
 % Based on the information that will create the approprite multi-lane road
 %
 % Base: [roadPiece roadLength lanes bidirectional midLane speedLimit intersectionPattern curvature1 curvature2];
+
 [facingLeft, inPointLeft, leftPiece] = multiLaneRoad(drScn, lRoadPoints(1,:), mod(facing+pi/2-pi*(lDirection==1),2*pi), pieces(1,1), leftAssertion);
 
 [facingTop, inPointTop, topPiece] = multiLaneRoad(drScn, tRoadPoints(1,:), mod(facing-pi*(tDirection==1), 2*pi), pieces(1,1), topAssertion);

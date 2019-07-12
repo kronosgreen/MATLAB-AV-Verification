@@ -6,6 +6,7 @@ function [facing, inPoint, pieces] = singlePedestrianCrosswalk(drScn, inPoint, f
 disp("Starting Pedestrian Crosswalk");
     
 % set up variables from struct
+roadType = str2double(roadStruct(1));
 length = str2double(roadStruct(2));
 lanes = str2double(roadStruct(3));
 bidirectional = str2double(roadStruct(4));
@@ -52,7 +53,7 @@ forwardPaths = zeros(lanes, 12);
 if bidirectional
     reversePaths = zeros(lanes, 12);
     for i=1:lanes
-        forwardPaths(i,:) = reshape((roadPoints + (LANE_WIDTH * (i - 1/2)) * [cos(facing-pi/2) sin(facing-pi/2) 0]).', [1,12])
+        forwardPaths(i,:) = reshape((roadPoints + (LANE_WIDTH * (i - 1/2)) * [cos(facing-pi/2) sin(facing-pi/2) 0]).', [1,12]);
         reversePaths(i,:) = reshape((roadPoints + ( LANE_WIDTH * (i - 1/2) ) * [cos(facing+pi/2) sin(facing+pi/2) 0]).', [1,12]);
     end
 else
@@ -90,11 +91,11 @@ if ~checkAvailability(pieces, botLeftCorner, topRightCorner, [oldInPoint(1:2);in
     disp("@ Multi Lane Road : Could Not Place Piece");
     inPoint = oldInPoint;
     try
-        fprintf(fid, "%d,", roadStruct(1));
+        fprintf(fid, "%d,", roadType);
     catch
         disp("Error printing");
         fid = fopen("placedRoadNet.txt","a");
-        fprintf(fid, "%d,", roadStruct(1));
+        fprintf(fid, "%d,", roadType);
     end
     return
 end
@@ -107,13 +108,13 @@ plot(roadPoints(:,1),roadPoints(:,2));
 % creating a new middle piece in the shape of a trapezoid.
 % Checks to see if this isn't the first piece placed
 if size(pieces,1) >= 2
-    [xinPoint, xfacing, pieces] = laneSizeChange(drScn, oldInPoint, oldFacing, ...
+    [xinPoint, xfacing, pieces] = laneSizeChange(drScn, oldInPoint, facing, ...
         roadWidth, pieces, dirVec, roadStruct);
 end
 
 
 % Create Road Piece in Scenario
-road(drScn, roadPoints);
+road(drScn, roadPoints, roadWidth);
 
 % Add Pedestrians to Crosswalk
 leftFreq = char(pedPathWays(1));
@@ -136,9 +137,11 @@ for i=1:MINUTE_LIMIT
         pedStartSpeed = 1 / (60*(i-1) + randi(60)); % sets speed to start at random point during given minuteT
         pedCrossSpeed = (randi(10)/10) + 0.9; % Sets a random walking speed based on avg speed 1.4mps +- 0.5 mps
         
-        pedStartPos = oldInPoint + (roadWidth/2 + 1) * [cos(facing-pi/2) sin(facing-pi/2) 0] + randi(100) * length/100 * dirVec;
+        pedStartPos = roadPoints(1,:) + (roadWidth/2 + 1) * [cos(facing-pi/2) sin(facing-pi/2) 0] + randi(100) * length/100 * dirVec;
         pedStartPos(3) = elevation;
+        
         walkingDir = [cos(facing+pi/2) sin(facing+pi/2) 0];
+        
         pedPath = [pedStartPos; ...
                     pedStartPos + walkingDir; ...
                     pedStartPos + (roadWidth+1) * walkingDir; ...
@@ -162,9 +165,11 @@ for i=1:MINUTE_LIMIT
         pedStartSpeed = 1 / (60*(i-1) + randi(60)); % sets speed to start at random point during given minuteT
         pedCrossSpeed = (randi(10)/10) + 0.9; % Sets a random walking speed based on avg speed 1.4mps +- 0.5 mps
         
-        pedStartPos = oldInPoint + (roadWidth/2 + 1) * [cos(facing-pi/2) sin(facing-pi/2) 0] + randi(100) * length/100 * dirVec;
+        pedStartPos = roadPoints(1,:) + (roadWidth/2 + 1) * [cos(facing-pi/2) sin(facing-pi/2) 0] + randi(100) * length/100 * dirVec;
         pedStartPos(3) = elevation;
+        
         walkingDir = [cos(facing+pi/2) sin(facing+pi/2) 0];
+        
         pedPath = [pedStartPos; ...
                     pedStartPos + walkingDir; ...
                     pedStartPos + (roadWidth+1) * walkingDir; ...

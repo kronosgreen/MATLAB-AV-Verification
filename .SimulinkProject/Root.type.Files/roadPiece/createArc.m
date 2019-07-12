@@ -1,10 +1,10 @@
-function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature, lanes, bidirectional, midTurnLane)
+function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, curvature, lanes, bidirectional, midLane)
 %CREATEARC create an arc road piece, or a piece with a constant curvature,
 % otherwise part of a circle
 
 % get lane width from global
 global LANE_WIDTH;
-if midTurnLane ~= 0, midTurnLane = 1; end
+if midLane > 1, midLane = 1; end
 
 % number of points desired in arc
 N = 5;
@@ -33,14 +33,10 @@ if bidirectional
         theta = -(length*curvature) * (j-1) / (N-1);
         for i=1:lanes
             forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
-                [cos(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
-                sin(theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
-                0];
+                (LANE_WIDTH * (1/2 + midLane/2 + (i-1))) * [cos(theta) sin(theta) 0];
             
             reversePaths(i,(N-j+1)*3-2:3*(N-j+1)) = curvePoints(j,:) + ...
-                [cos(pi+theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
-                sin(pi+theta)*(LANE_WIDTH * (1/2 + midTurnLane/2 + (i-1))) ...
-                0];
+                (LANE_WIDTH * (1/2 + midLane/2 + (i-1))) * [cos(pi+theta) sin(pi+theta) 0];
         end
     end
 else
@@ -49,9 +45,7 @@ else
         theta = -(length * curvature) * (j-1)/N;
         for i=1:lanes
             forwardPaths(i,3*j-2:3*j) = curvePoints(j,:) + ...
-                [cos(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) ...
-                sin(-theta)*(LANE_WIDTH * (1/2 + (i-1) - lanes/2)) ...
-                0];
+                (LANE_WIDTH * (1/2 + (i-1) - lanes/2)) * [cos(-theta) sin(-theta) 0];
         end
     end
 end

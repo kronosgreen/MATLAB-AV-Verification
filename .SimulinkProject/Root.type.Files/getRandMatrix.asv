@@ -41,7 +41,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         end
         % Currently only multilane road is implemented
         % Determines which piece will be placed
-        roadType = 1;%randi(length(pieces));
+        roadType = randi(length(pieces));
         
         % Sets length of the road in meters,
         if roadType == 4
@@ -144,9 +144,9 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % Outlets - 'pos1_side1_size1:pos2...'
         numOutlets = randi(4) - 1;
         if roadType == 1 && numOutlets > 0
-            outlets = [(randi(10)-1) (randi(2)-1) (randi(10)-1)];
+            outlets = [char(48+randi(10)-1) char(48+randi(2)-1) char(48+randi(10)-1)];
             for k = 1:numOutlets-1
-                outlets = [outlets ':' (randi(10)-1) (randi(2)-1) (randi(10)-1)];
+                outlets = [outlets ':' (48+randi(10)-1) (48+randi(2)-1) (48+randi(10)-1)];
             end
         else
             outlets = "000";

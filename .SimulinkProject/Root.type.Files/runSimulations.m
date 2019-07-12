@@ -11,7 +11,7 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     % simulations that were run 
     delete('matrixFile.txt');
     
-    [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, 2);
+    [rMatrix, aMatrix] = getRandMatrix(lenRoad, numActors, numSimulations);
 
     matrix2scen(rMatrix, aMatrix);
 

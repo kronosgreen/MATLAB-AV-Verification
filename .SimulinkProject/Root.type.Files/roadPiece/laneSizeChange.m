@@ -10,10 +10,10 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     global TRANSITION_PIECE_LENGTH;
     
     % set up variables
-    lanes = roadStruct(3);
-    bidirectional = roadStruct(4);
-    midTurnLane = roadStruct(5);
-    speedLimit = roadStruct(6);
+    lanes = str2double(roadStruct(3));
+    bidirectional = str2double(roadStruct(4));
+    midTurnLane = str2double(roadStruct(5));
+    speedLimit = str2double(roadStruct(6));
     
     % Setting a separate reference for the starting point
     oldPoint = inPoint;
@@ -269,6 +269,8 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
     rPiece.speedLimit = speedLimit;
+    rPiece.pedPathWays = "000";
+    rPiece.showMarkers = 0;
 
     inPoint = newPoint;
     
