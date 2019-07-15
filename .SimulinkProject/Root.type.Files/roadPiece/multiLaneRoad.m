@@ -3,7 +3,7 @@
     %MULTILANEROAD 
     %   Set up road piece with n-lanes based on the lanes parameter. If
     %   bidirectional it will include lanes going the opposite direction
-    %   If midTurnLane is true, it will include a turn lane between the two 
+    %   If midLane is true, it will include a turn lane between the two 
     %   directions as well
     disp("Starting Multi-Lane Road");
     
@@ -381,7 +381,7 @@
     rPiece.length = length;
     rPiece.curvature1 = curvature1;
     rPiece.curvature2 = curvature2;
-    rPiece.midTurnLane = midLane;
+    rPiece.midLane = midLane;
     rPiece.bidirectional = bidirectional;
     rPiece.lanes = lanes;
     rPiece.forwardDrivingPaths = forwardPaths;

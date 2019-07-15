@@ -171,7 +171,7 @@ end
 leftAssertion = [2 length/2 lLanes int8(lDirection == 0) 0 speedLimit lDirection 0 0 "0" "0" showMarkers];
 topAssertion = [2 length/2 tLanes int8(tDirection == 0) 0 speedLimit tDirection 0 0 "0" "0" showMarkers];
 rightAssertion = [2 length/2 rLanes int8(rDirection == 0) 0 speedLimit rDirection 0 0 "0" "0" showMarkers];
-bottomAssertion = [2 length/2 bLanes bidirectional 0 speedLimit 0 0 0 "0" "0" showMarkers];
+bottomAssertion = [2 length/2 bLanes int8(bidirectional) 0 speedLimit 0 0 0 "0" "0" showMarkers];
 
 % Create Transition Piece
 if size(pieces,1) >= 2
@@ -387,7 +387,7 @@ rPiece.facing = facing;
 rPiece.length = length;
 rPiece.curvature1 = 0;
 rPiece.curvature2 = 0;
-rPiece.midTurnLane = 0;
+rPiece.midLane = 0;
 rPiece.bidirectional = interPattern(contDirection) == '0';
 rPiece.lanes = contLanes(contDirection);
 rPiece.forwardDrivingPaths = forwardPaths;

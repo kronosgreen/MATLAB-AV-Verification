@@ -22,7 +22,7 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
     rPiece.length = 0;
     rPiece.curvature1 = 0;
     rPiece.curvature2 = 0;
-    rPiece.midTurnLane = 0;
+    rPiece.midLane = 0;
     rPiece.bidirectional = 0;
     rPiece.lanes = 0;
     rPiece.forwardDrivingPaths = 0;
@@ -48,7 +48,7 @@ function [drScn, pieces] = matrix2road2(drScn, roadMatrix)
         switch str2double(roadMatrix(i,1))
             
             case 1
-                % multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midTurnLane, speedLimit, roadSlickness, curvature)
+                % multiLaneRoad(drScn, inPoint, facing, pieces, lanes, length, bidirectional, midLane, speedLimit, roadSlickness, curvature)
                 % try
                 [facing, inPoint, pieces] = multiLaneRoad(drScn, inPoint, facing, pieces, roadMatrix(i, :));
                 % catch

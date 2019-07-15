@@ -14,6 +14,8 @@ speedLimit = str2double(roadStruct(6));
 elevation = abs(str2double(roadStruct(8))); % Originally curvature=
 pedPathWays = split(roadStruct(10), ':');
 showMarkers = str2double(roadStruct(12));
+% Fix road struct for later
+roadStruct(5) = "0";
 
 % Set up direction the road starts off going in by taking the 
 % facing parameter in radians and creating a vector
@@ -190,7 +192,7 @@ rPiece.facing = facing;
 rPiece.length = length;
 rPiece.curvature1 = elevation;
 rPiece.curvature2 = 0;
-rPiece.midTurnLane = 0;
+rPiece.midLane = 0;
 rPiece.bidirectional = bidirectional;
 rPiece.lanes = lanes;
 rPiece.forwardDrivingPaths = forwardPaths;

@@ -12,7 +12,8 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     % set up variables
     lanes = str2double(roadStruct(3));
     bidirectional = str2double(roadStruct(4));
-    midTurnLane = str2double(roadStruct(5));
+    midLane = str2double(roadStruct(5));
+    if midLane > 1, midLane = 0; end
     speedLimit = str2double(roadStruct(6));
     
     % Setting a separate reference for the starting point
@@ -36,7 +37,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         % get total lane number
         totalLanes = newWidth / LANE_WIDTH;
         % adds mid lane if not added yet
-        if bidirectional && ~midTurnLane && pieces(length(pieces)).midTurnLane
+        if bidirectional && ~midLane && pieces(length(pieces)).midLane
             totalLanes = totalLanes + 1;
         end
     else
@@ -47,7 +48,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         % get total lane number
         totalLanes = rWidth / LANE_WIDTH;
         % adds mid lane if not added yet
-        if bidirectional && ~pieces(length(pieces)).midTurnLane && midTurnLane
+        if bidirectional && ~pieces(length(pieces)).midLane && midLane
             totalLanes = totalLanes + 1;
         end
     end
@@ -64,7 +65,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         end
         
         % Place yellow lines in middle
-        if midTurnLane || pieces(length(pieces)).midTurnLane
+        if midLane || pieces(length(pieces)).midLane
             lm = vertcat(lm, [laneMarking('SolidDashed','Color','y'); ...
                 laneMarking('DashedSolid','Color','y')]);
         else
@@ -106,12 +107,12 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         if bidirectional
             % determines whether to account for a mid turn lane when
             % calculating lane index            
-            mid = (midTurnLane || pieces(length(pieces)).midTurnLane);
+            mid = (midLane || pieces(length(pieces)).midLane);
             
-            if midTurnLane && ~pieces(length(pieces)).midTurnLane
+            if midLane && ~pieces(length(pieces)).midLane
             % mid turn lane to no mid turn lane
                 midLaneWidth = LANE_WIDTH * (numPieces - i) / numPieces;
-            elseif ~midTurnLane && pieces(length(pieces)).midTurnLane
+            elseif ~midLane && pieces(length(pieces)).midLane
             % no mid turn lane to mid turn lane
                 midLaneWidth = LANE_WIDTH * i / numPieces;
             else
@@ -230,6 +231,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
         
         % Create spec - taking out for test
         ls = lanespec(totalLanes,'Width',widths,'Marking',lm);
+        
         % Place road piece in scene
         road(drScn, [oldPoint; newPoint], 'Lanes', ls);
         
@@ -259,7 +261,7 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     rPiece.length = 10;
     rPiece.curvature1 = 0;
     rPiece.curvature2 = 0;
-    rPiece.midTurnLane = midTurnLane;
+    rPiece.midLane = midLane;
     rPiece.bidirectional = bidirectional;
     rPiece.lanes = lanes;
     rPiece.forwardDrivingPaths = 0;

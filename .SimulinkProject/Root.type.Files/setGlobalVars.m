@@ -14,7 +14,7 @@ global fid;
 fid = fopen("placedRoadNet.txt", "a");
 
 global MINUTE_LIMIT;
-MINUTE_LIMIT = 15;
+MINUTE_LIMIT = 3;
 
 global PED_FACTOR;
 PED_FACTOR = 1;
