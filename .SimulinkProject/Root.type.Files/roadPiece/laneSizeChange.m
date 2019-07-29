@@ -13,7 +13,6 @@ function [inPoint, facing, pieces] = laneSizeChange(drScn, inPoint, facing, newW
     lanes = str2double(roadStruct(3));
     bidirectional = str2double(roadStruct(4));
     midLane = str2double(roadStruct(5));
-    if midLane > 1, midLane = 0; end
     speedLimit = str2double(roadStruct(6));
     
     % Setting a separate reference for the starting point

@@ -26,7 +26,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     % 1 = two directions with double solid yellow line
     % 2 = two directions with dashed yellow line
     % currently remains the same for the entire road
-    bidirectional = randi(3) - 1;
+    bidirectional = 2;%randi(3) - 1;
     bidirChanged = 0;
     
     % initialize lanes to 3 if none being set
@@ -41,7 +41,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         end
         % Currently only multilane road is implemented
         % Determines which piece will be placed
-        roadType = randi(length(pieces));
+        roadType = 1;%randi(length(pieces));
         
         % Sets length of the road in meters,
         if roadType == 4
@@ -75,6 +75,8 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % Sets the speed limit for the road, when setting the paths, actors
         % will use this value to set their speed
         speedLimit = randi(11) * 2.2352 + 11.176;
+        % Set a lower speed limit for pedestrian crosswalk
+        if roadType == 4, speedLimit = (randi(3) + 1) * 2.2352; end
         
         % sets both curvatures, mainly for multilane road. Starting
         % curvature and ending curvature, both zero means straight line,

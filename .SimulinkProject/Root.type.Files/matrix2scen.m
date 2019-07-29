@@ -7,9 +7,6 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
     [drScn, pieces] = matrix2road2(drScn, roadMatrix);
 
     [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces);
- 
-    %poseRecord = record(drScn);
-    %poseRecord.ActorPoses(1).Position(1);
 
     hFigure = figure;
     hFigure.Position(3) = 900;
@@ -26,29 +23,19 @@ function [drScn] = matrix2scen(roadMatrix, actorMatrix)
 
     chasePlot(egoCar, 'Parent', hAxes2,'Centerline','off');
 
-    egoCarBEP = birdsEyePlot('Parent',hAxes3,'XLimits',[-200 200],'YLimits',[-240 240]);
-    fastTrackPlotter = trackPlotter(egoCarBEP,'MarkerEdgeColor','red','DisplayName','target','VelocityScaling',.5);
-    egoTrackPlotter = trackPlotter(egoCarBEP,'MarkerEdgeColor','blue','DisplayName','ego','VelocityScaling',.5);
-    egoLanePlotter = laneBoundaryPlotter(egoCarBEP);
-    plotTrack(egoTrackPlotter, [0 0]);
-    egoOutlinePlotter = outlinePlotter(egoCarBEP);
+    bepPlot = birdsEyePlot('Parent', hAxes3,'XLim',[-50 50],'YLim',[-40 40]);
+    outlineplotter = outlinePlotter(bepPlot);
+    laneplotter = laneBoundaryPlotter(bepPlot);
+    legend('off')
+    
 
     while advance(drScn)
-        %t = targetPoses(egoCar);
-        %plotTrack(fastTrackPlotter, t.Position, t.Velocity);
+        rb = roadBoundaries(egoCar);
+        [position,yaw,length,width,originOffset,color] = targetOutlines(egoCar);    
+        plotLaneBoundary(laneplotter,rb)
+        plotOutline(outlineplotter,position,yaw,length,width, ...
+                    'OriginOffset',originOffset,'Color',color)
         pause(0.001)
-        %rbs = roadBoundaries(egoCar);
-        %plotLaneBoundary(egoLanePlotter, rbs);
-        %[position, yaw, length, width, originOffset, color] = targetOutlines(egoCar);
-        %plotOutline(egoOutlinePlotter, position, yaw, length, width, 'OriginOffset', originOffset, 'Color', color);
     end
-
-    disp(getCurrentJob);
-    fid = fopen('matrixFile.txt', 'a');
-    save('matrixFile.txt','roadMatrix','-ascii', '-append');
-    fprintf(fid, '\n');
-    save('matrixFile.txt','actorMatrix','-ascii', '-append');
-    fprintf(fid, '\n\n');
-    fclose(fid);
 
 end

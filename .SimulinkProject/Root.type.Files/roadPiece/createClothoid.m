@@ -1,5 +1,5 @@
 function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length, ...
-                                                                                     lanes, bidirectional, midTurnLane, ...
+                                                                                     lanes, bidirectional, midLane, ...
                                                                                      startCurvature, endCurvature)
 %CREATECLOTHOID Creates a clothoid line given a starting point, start and
 %end curvature, and a facing direction. Returns points for driving paths as
@@ -8,27 +8,27 @@ function [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createCloth
 % Open file for stat collecting
 %fid = fopen('thetas_accuracy_data.txt', 'a');
 
-if midTurnLane ~= 0, midTurnLane = 1; end
+if midLane ~= 0, midLane = 1; end
 
 % check if curvature is changing signs, negative to positive or positive to
 % negative
 % also check to see if they are the same, in which case, an arc will be
 % made instead
 if (startCurvature < 0 && endCurvature > 0) || (startCurvature > 0 && endCurvature < 0)
-    [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midTurnLane, startCurvature, 0);
-    [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midTurnLane, 0, endCurvature);
+    [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midLane, startCurvature, 0);
+    [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = createClothoid(roadPoints, inPoint, facing, length/2, lanes, bidirectional, midLane, 0, endCurvature);
     forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2];
     reversePaths = [rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
     return;
 elseif startCurvature == endCurvature
-    [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, startCurvature, lanes, bidirectional, midTurnLane);
+    [roadPoints, forwardPaths, reversePaths, inPoint, facing] = createArc(roadPoints, inPoint, facing, length, startCurvature, lanes, bidirectional, midLane);
     return;
 end
 
 % get global lane width
 global LANE_WIDTH;
 
-disp("CLOTHOID CURVATURE FROM " + startCurvature + " TO " + endCurvature);
+%disp("CLOTHOID CURVATURE FROM " + startCurvature + " TO " + endCurvature);
 
 % how many points make up the clothoid, including the starting point
 N = 6;
@@ -179,22 +179,20 @@ for i=1:N
     if bidirectional
         for j=1:lanes
             lanePoint = clothoidPoints(i,:) + ...
-                (LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1)))* ...
+                (LANE_WIDTH * (1/2 + midLane/2 + (j-1)))* ...
                 [cos(-thetas(i)) sin(-thetas(i)) 0];
             forwardPaths(j,3*i-2:3*i) = lanePoint;
 
             lanePoint = clothoidPoints(i,:) + ...
-                [cos(pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
-                sin(pi-thetas(i))*(LANE_WIDTH * (1/2 + midTurnLane/2 + (j-1))) ...
-                0];
+                (LANE_WIDTH * (1/2 + midLane/2 + (j-1))) * ...
+                [cos(pi-thetas(i)) sin(pi-thetas(i)) 0];
             reversePaths(j,3*(N-i)+1:3*(N-i+1)) = lanePoint;
         end
     else
         for j=1:lanes
             lanePoint = clothoidPoints(i,:) + ...
-                [cos(-thetas(i))*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) ...
-                sin(-thetas(i))*(LANE_WIDTH * (1/2 + (j-1) - lanes/2)) ...
-                0];
+                (LANE_WIDTH * (1/2 + (j-1) - lanes/2)) * ...
+                [cos(-thetas(i)) sin(-thetas(i)) 0];
             forwardPaths(j,3*i-2:3*i) = lanePoint;
         end
     end

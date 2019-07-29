@@ -101,9 +101,9 @@
                 
                 % Build Right Start
                 rightStart = [inPoint; ...
-                    (inPoint + 2*dirVec); ...
-                    (inPoint + 8*dirVec); ...
-                    (inPoint + 10*dirVec)];
+                    (inPoint + 4*dirVec); ...
+                    (inPoint + 16*dirVec); ...
+                    (inPoint + 20*dirVec)];
                 % Shift all points right by 1/2 Width
                 rightStart = rightStart + 0.5*lanes*LANE_WIDTH*[cos(facing-pi/2) sin(facing-pi/2) 0];
                 % Shift top two points by 1/2 median width
@@ -111,13 +111,22 @@
                 
                 % Build Left Start
                 leftStart = [inPoint; ...
-                    (inPoint + 2*dirVec); ...
-                    (inPoint + 8*dirVec); ...
-                    (inPoint + 10*dirVec)];
+                    (inPoint + 4*dirVec); ...
+                    (inPoint + 16*dirVec); ...
+                    (inPoint + 20*dirVec)];
                 % Shift all points right by 1/2 Width
                 leftStart = leftStart + 0.5*lanes*LANE_WIDTH*[cos(facing+pi/2) sin(facing+pi/2) 0];
                 % Shift top two points by 1/2 median width
                 leftStart(3:4,:) = leftStart(3:4,:) + 0.5*[cos(facing+pi/2) sin(facing+pi/2) 0];
+                
+                fwPaths0 = zeros(lanes, 9);
+                rvPaths0 = zeros(lanes, 9);
+                left = [cos(facing+pi/2) sin(facing+pi/2) 0];
+                % Create the road points
+                for i = 1:lanes
+                    fwPaths0(i,:) = reshape((rightStart(1:3,:)-(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
+                    rvPaths0(i,:) = reshape((flipud(leftStart(1:3,:))+(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
+                end
                 
                 lm = [lm; laneMarking('Solid', 'Color', 'y')];
                 lm(1) = laneMarking('Solid','Color','y');
@@ -126,9 +135,12 @@
                 ls = lanespec(lanes, 'Width', LANE_WIDTH, 'Marking', lm);
                 
                 % Set up Params for Geometry Construction
-                ln = oldLW * lanes - 1;
-                LANE_WIDTH = 1;
+                ln = 2 * LANE_WIDTH * lanes - 1;
+                LANE_WIDTH = 0.5;
                 inPoint = inPoint + 20*dirVec;
+                
+                % Set midlane to 0 in roadstruct for laneSizeChange
+                roadStruct(5) = "0";
                 
             case 3
                 % Large Median
@@ -156,6 +168,15 @@
                 % Shift top two points by 1/2 median width
                 leftStart(3:4,:) = leftStart(3:4,:) + [cos(facing+pi/2) sin(facing+pi/2) 0];
                 
+                fwPaths0 = zeros(lanes, 9);
+                rvPaths0 = zeros(lanes, 9);
+                left = [cos(facing+pi/2) sin(facing+pi/2) 0];
+                % Create the road points
+                for i = 1:lanes
+                    fwPaths0(i,:) = reshape((rightStart(1:3,:)-(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
+                    rvPaths0(i,:) = reshape((flipud(leftStart(1:3,:))+(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
+                end
+                
                 inPoint = leftStart(4,:);
                 
                 lm = [lm; laneMarking('Solid', 'Color', 'y')];
@@ -165,10 +186,12 @@
                 ls = lanespec(lanes, 'Width', LANE_WIDTH, 'Marking', lm);
                 
                 % Set up Params for Geometry Construction
-                ln = oldLW * lanes - 1;
-                LANE_WIDTH = 1;
+                ln = 2 * LANE_WIDTH * lanes - 1;
+                LANE_WIDTH = 0.5;
                 inPoint = inPoint + 20*dirVec;
                 
+                % Set midlane to 0 in roadstruct for laneSizeChange
+                roadStruct(5) = "0";
         end
 
     else 
@@ -194,17 +217,15 @@
     % determine the line type
     if curvature1 == 0 && curvature2 == 0
         lineType = 0;
-    elseif curvature1 == 0 
-        lineType = 1;
-        curv = curvature2;
     elseif curvature2 == 0
         lineType = 1;
-        curv = curvature1;
+    elseif curvature1 == 0 
+        lineType = 2;
     % determining whether the road is clothoid-arc-clothoid or the reverse
     % of that is currently done arbitrarily; most likely will add parameter
     % later
     else
-        lineType = 1 + randi(2);
+        lineType = 2 + randi(2);
     end
     
     % set up empty matrix for road points
@@ -219,16 +240,26 @@
             [roadPoints, forwardPaths, reversePaths, inPoint, facing] = ...
                 createStraightLine(roadPoints, inPoint, facing, length, ln, bidirectional, midLane);
         case 1
+            disp("Arc - Clothoid - Line");
+            [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
+                createArc(roadPoints, inPoint, facing, length/3, curvature1, ln, bidirectional, midLane);
+            [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
+                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, curvature1, 0);
+            [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
+                createStraightLine(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane);
+            forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
+            reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
+        case 2
             disp("Line - Clothoid - Arc");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
                 createStraightLine(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane);
             [roadPoints, fwPaths2, rvPaths2, inPoint, facing] = ...
-                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, 0, curv);
+                createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, 0, curvature2);
             [roadPoints, fwPaths3, rvPaths3, inPoint, facing] = ...
-                createArc(roadPoints, inPoint, facing, length/3, curv, ln, bidirectional, midLane);
+                createArc(roadPoints, inPoint, facing, length/3, curvature2, ln, bidirectional, midLane);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
-        case 2
+        case 3
             disp("Clothoid - Arc - Clothoid");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
                 createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, 0, curvature1);
@@ -238,7 +269,7 @@
                 createClothoid(roadPoints, inPoint, facing, length/3, ln, bidirectional, midLane, curvature1, curvature2);
             forwardPaths = [fwPaths1(:,1:size(fwPaths1,2)-3) fwPaths2(:,1:size(fwPaths2,2)-3) fwPaths3];
             reversePaths = [rvPaths3(:,1:size(rvPaths3,2)-3) rvPaths2(:,1:size(rvPaths2,2)-3) rvPaths1];
-        case 3
+        case 4
             disp("Arc - Clothoid - Arc");
             [roadPoints, fwPaths1, rvPaths1, inPoint, facing] = ...
                 createArc(roadPoints, inPoint, facing, length/3, curvature1, ln, bidirectional, midLane);
@@ -315,7 +346,7 @@
     % Create Road Piece in Scenario
     if midLane > 1 && bidirectional
         % Set up Small Median Roads
-        roadIndex = ceil(lanes/2)*LANE_WIDTH-1;
+        roadIndex = LANE_WIDTH * lanes + 1;
         
         pLength = size(forwardPaths,2)/3;
         rightPoints = reshape(forwardPaths(roadIndex,:), [3,pLength]).';
@@ -331,32 +362,53 @@
                     leStart + 8 * newDirVec; ...
                     leStart + 10 * newDirVec];
         
+        hold on;
+        for i=1:ln
+            plot(forwardPaths(i,1:3:size(forwardPaths, 2)),forwardPaths(i,2:3:size(forwardPaths,2))); 
+            plot(reversePaths(i,1:3:size(forwardPaths, 2)),reversePaths(i,2:3:size(forwardPaths,2))); 
+        end
+        
         if midLane == 2
             rightEnd(2:3,:) = rightEnd(2:3,:) + 0.5 * [cos(facing+pi/2) sin(facing+pi/2) 0];
             leftEnd(2:3,:) = leftEnd(2:3,:) + 0.5 * [cos(facing-pi/2) sin(facing-pi/2) 0];
             
             % set paths back to normal
-            forwardPaths = forwardPaths(2:3:size(forwardPaths,1),:);
-            reversePaths = reversePaths(2:3:size(reversePaths,1),:);
+            forwardPaths = forwardPaths(4:6:size(forwardPaths,1),:);
+            reversePaths = reversePaths(4:6:size(reversePaths,1),:);
+            
         elseif midLane == 3
-            rightEnd(2:3,:) = rightEnd(2:3,:) + [cos(facing+pi/2) sin(facing+pi/2) 0];
-            leftEnd(2:3,:) = leftEnd(2:3,:) + [cos(facing-pi/2) sin(facing-pi/2) 0];
+            rightEnd(2:3,:) = rightEnd(2:3,:) + 1 * [cos(facing+pi/2) sin(facing+pi/2) 0];
+            leftEnd(2:3,:) = leftEnd(2:3,:) + 1 * [cos(facing-pi/2) sin(facing-pi/2) 0];
             
             % set paths back to normal
-            forwardPaths = forwardPaths(2:3:size(forwardPaths,1),:);
-            reversePaths = reversePaths(2:3:size(reversePaths,1),:);
-        end            
+            forwardPaths = forwardPaths(5:6:size(forwardPaths,1),:);
+            reversePaths = reversePaths(5:6:size(reversePaths,1),:);
+            
+        end
         
-        rightPoints = [rightStart; rightPoints; rightEnd];
-        leftPoints = [leftStart; leftPoints; leftEnd];
+        rightPoints = [rightStart; rightPoints(2:(size(rightPoints,1)-1),:); rightEnd];
+        leftPoints = [leftStart; leftPoints(2:(size(leftPoints,1)-1),:); leftEnd];
         
-        hold on;
-        plot(rightPoints(:,1),rightPoints(:,2));
-        plot(leftPoints(:,1),leftPoints(:,2));
+        fwPaths4 = zeros(lanes, 9);
+        rvPaths4 = zeros(lanes, 9);
+        left = [cos(facing+pi/2) sin(facing+pi/2) 0];
+        
+        % Create the road points
+        for i = 1:lanes
+            fwPaths4(i,:) = reshape((rightEnd-(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
+            rvPaths4(i,:) = reshape((flipud(leftEnd)+(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
+        end
+        
+        forwardPaths = [fwPaths0, forwardPaths, fwPaths4];
+        reversePaths = [rvPaths4, reversePaths, rvPaths0];
+
+        inPoint = leftEnd(3,:) + roadWidth/4 * [cos(facing-pi/2) sin(facing-pi/2) 0];
+        
+        plot(rightPoints(:,1),rightPoints(:,2), 'LineWidth', 2);
+        plot(leftPoints(:,1),leftPoints(:,2), 'LineWidth', 2);
         
         road(drScn, leftPoints, 'Lanes', ls);
         road(drScn, rightPoints, 'Lanes', ls);
-        
         
     else
         road(drScn, roadPoints, 'Lanes', ls);
@@ -372,6 +424,7 @@
     end
     
     % Sets up parameters to pass into the road info array
+    if midLane > 1, midLane = 0; end
     
     rPiece.type = 1;
     rPiece.lineType = lineType;

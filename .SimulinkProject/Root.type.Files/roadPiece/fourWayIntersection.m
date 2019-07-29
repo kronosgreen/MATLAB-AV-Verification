@@ -63,7 +63,7 @@ contDirection = str2double(interPattern(4));
 lWidth = ((lDirection == 0) + 1) * lLanes * LANE_WIDTH;
 tWidth = ((tDirection == 0) + 1) * tLanes * LANE_WIDTH;
 rWidth = ((rDirection == 0) + 1) * rLanes * LANE_WIDTH;
-bWidth = (bidirectional + 1) * bLanes * LANE_WIDTH;
+bWidth = (double(bidirectional > 0) + 1) * bLanes * LANE_WIDTH;
 contWidths = [lWidth tWidth rWidth];
 
 %% Calculating position of the four roads
@@ -175,7 +175,6 @@ bottomAssertion = [2 length/2 bLanes int8(bidirectional) 0 speedLimit 0 0 0 "0" 
 
 % Create Transition Piece
 if size(pieces,1) >= 2
-    disp(interPattern);
     [inPoint, facing, pieces] = laneSizeChange(drScn, oldInPoint, facing, ...
         bWidth, pieces, dirVec, bottomAssertion);
 end

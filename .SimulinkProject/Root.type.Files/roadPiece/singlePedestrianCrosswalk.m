@@ -164,20 +164,20 @@ for i=1:MINUTE_LIMIT
         ac = actor(drScn, 'Length', 0.2 * pLen, 'Width', 0.2 * pWdth, 'Height', 1.75 * pHght);
         
         % Sets the time before ped. crosses
-        pedStartSpeed = 1 / (60*(i-1) + randi(60)); % sets speed to start at random point during given minuteT
+        pedStartSpeed = 10 * (1 / (60*(i-1) + randi(60))); % sets speed to start at random point during given minute
         pedCrossSpeed = (randi(10)/10) + 0.9; % Sets a random walking speed based on avg speed 1.4mps +- 0.5 mps
         
-        pedStartPos = roadPoints(1,:) + (roadWidth/2 + 1) * [cos(facing-pi/2) sin(facing-pi/2) 0] + randi(100) * length/100 * dirVec;
+        pedStartPos = roadPoints(1,:) + (roadWidth/2 + 1) * [cos(facing+pi/2) sin(facing+pi/2) 0] + randi(100) * length/100 * dirVec;
         pedStartPos(3) = elevation;
         
-        walkingDir = [cos(facing+pi/2) sin(facing+pi/2) 0];
+        walkingDir = [cos(facing-pi/2) sin(facing-pi/2) 0];
         
         pedPath = [pedStartPos; ...
                     pedStartPos + walkingDir; ...
                     pedStartPos + (roadWidth+1) * walkingDir; ...
-                    pedStartPos + (roadWidth+2) * walkingDir];
+                    pedStartPos + [(roadWidth+2) * walkingDir(1:2) 1000]];
                 
-        trajectory(ac, pedPath, [pedStartSpeed pedStartSpeed pedCrossSpeed 0.00001]);
+        trajectory(ac, pedPath, [pedStartSpeed pedStartSpeed pedCrossSpeed 0.01]);
     end
 end
 
