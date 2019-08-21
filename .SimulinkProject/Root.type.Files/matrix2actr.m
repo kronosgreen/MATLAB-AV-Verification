@@ -55,6 +55,8 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                     newPath = vertcat(newPath, [1000 1000 1000]);
                     newSpeeds = [newSpeeds 10];
                     trajectory(ac, newPath, newSpeeds);
+                else
+                    disp( "Error Creating Pedestrian: " + strjoin(string(actorMatrix(i,:)), ' ') );
                 end
                 
         end % end switch

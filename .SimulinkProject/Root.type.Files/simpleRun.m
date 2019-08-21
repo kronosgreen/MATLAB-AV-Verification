@@ -14,14 +14,14 @@ NUM_SIMULATIONS = 10;
 % Num of road pieces to place in scenario
 LEN_ROAD = 1; 
 % Num of actors to place in scenario (cars, pedestrians, etc.)
-NUM_ACTORS = 1;
+NUM_ACTORS = 0;
 % runSimulations(NUM_SIMULATIONS, LEN_ROAD, NUM_ACTORS);
 
 % testing
 
 % for data collection
 %for i=1:100
-runSimulations(2, LEN_ROAD, NUM_ACTORS);
+runSimulations(49, LEN_ROAD, NUM_ACTORS);
 %end
 fclose(fid);
 disp("Simulations Complete");

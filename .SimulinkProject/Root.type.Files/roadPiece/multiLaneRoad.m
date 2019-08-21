@@ -177,8 +177,6 @@
                     rvPaths0(i,:) = reshape((flipud(leftStart(1:3,:))+(LANE_WIDTH*(i - (1+lanes)/2))*left).',1,9);
                 end
                 
-                inPoint = leftStart(4,:);
-                
                 lm = [lm; laneMarking('Solid', 'Color', 'y')];
                 lm(1) = laneMarking('Solid','Color','y');
                 
@@ -301,6 +299,8 @@
     % set up road points with extra points at beginning and end to
     % ensure direction is maintained at each
     endPoint =  inPoint + oldDirVec + newDirVec;
+    hold on;
+    plot(roadPoints(:,1),roadPoints(:,2))
     roadPoints = [roadPoints(1,:); roadPoints + oldDirVec; endPoint];
     
     % Set up corners to make boundaries
@@ -363,10 +363,10 @@
                     leStart + 10 * newDirVec];
         
         hold on;
-        for i=1:ln
-            plot(forwardPaths(i,1:3:size(forwardPaths, 2)),forwardPaths(i,2:3:size(forwardPaths,2))); 
-            plot(reversePaths(i,1:3:size(forwardPaths, 2)),reversePaths(i,2:3:size(forwardPaths,2))); 
-        end
+%         for i=1:ln
+%             plot(forwardPaths(i,1:3:size(forwardPaths, 2)),forwardPaths(i,2:3:size(forwardPaths,2))); 
+%             plot(reversePaths(i,1:3:size(forwardPaths, 2)),reversePaths(i,2:3:size(forwardPaths,2))); 
+%         end
         
         if midLane == 2
             rightEnd(2:3,:) = rightEnd(2:3,:) + 0.5 * [cos(facing+pi/2) sin(facing+pi/2) 0];
@@ -404,14 +404,26 @@
 
         inPoint = leftEnd(3,:) + roadWidth/4 * [cos(facing-pi/2) sin(facing-pi/2) 0];
         
-        plot(rightPoints(:,1),rightPoints(:,2), 'LineWidth', 2);
-        plot(leftPoints(:,1),leftPoints(:,2), 'LineWidth', 2);
+        scatter(rightPoints(:,1),rightPoints(:,2));
+        scatter(leftPoints(:,1),leftPoints(:,2));
+%         plot(rightPoints(:,1),rightPoints(:,2), 'LineWidth', 2);
+%         plot(leftPoints(:,1),leftPoints(:,2), 'LineWidth', 2);
         
-        road(drScn, leftPoints, 'Lanes', ls);
-        road(drScn, rightPoints, 'Lanes', ls);
+        if showMarkers
+            road(drScn, leftPoints, 'Lanes', ls);
+            road(drScn, rightPoints, 'Lanes', ls);
+        else
+            road(drScn, leftPoints, roadWidth/2);
+            road(drScn, rightPoints, roadWidth/2);
+        end
         
     else
-        road(drScn, roadPoints, 'Lanes', ls);
+        
+        if showMarkers
+            road(drScn, roadPoints, 'Lanes', ls);
+        else
+            road(drScn, roadPoints, roadWidth);
+        end
         
         % Plot Paths 
         hold on;

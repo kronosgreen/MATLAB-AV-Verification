@@ -4,7 +4,7 @@ function [facing, inPoint, pieces] = sideLotEnter(drScn, inPoint, facing, pieces
     disp("Starting Side-Lot Enter");
     
     % set up variables from struct
-    length = str2double(roadStruct(2)) / 2;
+    length = str2double(roadStruct(2));
     lanes = str2double(roadStruct(3));
     bidirectional = str2double(roadStruct(4));
     speedLimit = roadStruct(6);

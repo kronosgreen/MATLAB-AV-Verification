@@ -30,7 +30,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     bidirChanged = 0;
     
     % initialize lanes to 3 if none being set
-    lanes = 3; 
+    lanes = 3;
     
     for i=1:sizeRoad
         
@@ -41,26 +41,35 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         end
         % Currently only multilane road is implemented
         % Determines which piece will be placed
-        roadType = 1;%randi(length(pieces));
+        roadType = 5;%randi(length(pieces));
+        
+        % give second option for three way intersection
+        if roadType == 3, bidirectional = [char(48+bidirectional), char(47+randi(3))]; end
         
         % Sets length of the road in meters,
         if roadType == 4
-            roadLength = randi(10); % Single crosswalk can be 1 through 5m wide
+            roadLength = randi(10); % Single crosswalk can be 1 through 10m wide
         else
             roadLength = randi(13) * 10 + 70; % Roads can be 80-200m long
         end
         
         % Sets how many lanes there are to drive on, if road is two-way,
-        % lane # will be for each side (e.g. 3 lanes means 3 on each side),
+        % lane num will be for each direction (e.g. 3 lanes means 3 going each way),
         % ranges from 1 to 5
         % For 4 way intersections, lane #s represent the roads from top 
         % going clockwise
+        % For 3-way intersections, lane #s will be going forward and for 
+        % road going out in either direction (left or right) from that road
+        % as well as a binary value determining said direction
         if roadType == 2
             lanes = dec2base(258+randi(1036),6);
             while sum(lanes == '0') > 0
                 lanes = dec2base(258+randi(1036),6);
             end
             lanes = string(lanes);
+        elseif roadType == 3
+            % [lanes forward/back, lanes going out, direction going out]
+            lanes = string([char(48+randi(5)) char(48+randi(5)) char(47+randi(2))]);
         elseif roadType ~= 4 % Don't change lanes if going into a single crosswalk
             lanes = randi(5);
         end
@@ -81,49 +90,53 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % sets both curvatures, mainly for multilane road. Starting
         % curvature and ending curvature, both zero means straight line,
         % cannot be too close or else errors will arise
-        curvature1 = 0.060 * rand() - 0.030;
+        curvature1 = 0.050 * rand() - 0.025;
         if abs(curvature1) < 0.001, curvature1 = 0; end
-        curvature2 = 0.060 * rand() - 0.030;
+        curvature2 = 0.050 * rand() - 0.025;
         while abs(curvature2 - curvature1) < 0.003
-            curvature2 = 0.060 * rand() - 0.030;
+            curvature2 = 0.050 * rand() - 0.025;
         end
         if abs(curvature2) < 0.001, curvature2 = 0; end
         
-        % Create 4 way intersection pattern
-        % 0 is bidirectional
-        % 1 is one-way going in
-        % 2 is one-way going out
-        % Starts from left going clockwise w/ each digit until right side
-        intersectionValid = 0;
-        while ~intersectionValid
-            intersectionPattern = dec2base(randi(27)-1,3);
-            % prevent lane patterns that create a travel lane with nowhere
-            % to go
-            if sum(intersectionPattern == '1') == 3 || ...
-                (sum(intersectionPattern == '2') == 3 && bidirectional) || ...
-                (~bidirectional && sum(intersectionPattern == '1') == 2 && sum(intersectionPattern == '0') == 1)
-                intersectionValid = 0;
-            else
-                intersectionValid = 1;
+        if roadType == 2
+            % Create 4 way intersection pattern
+            % 0 is bidirectional
+            % 1 is one-way going in
+            % 2 is one-way going out
+            % Starts from left going clockwise w/ each digit until right side
+            intersectionValid = 0;
+            while ~intersectionValid
+                intersectionPattern = dec2base(randi(27)-1,3);
+                % prevent lane patterns that create a travel lane with nowhere
+                % to go
+                if sum(intersectionPattern == '1') == 3 || ...
+                    (sum(intersectionPattern == '2') == 3 && bidirectional) || ...
+                    (~bidirectional && sum(intersectionPattern == '1') == 2 && sum(intersectionPattern == '0') == 1)
+                    intersectionValid = 0;
+                else
+                    intersectionValid = 1;
+                end
             end
-        end
-        for k=1:3-size(intersectionPattern,2)
-            intersectionPattern = ['0' intersectionPattern];
-        end
-        % Determine what direction the scenario will continue from
-        % 1 - Left
-        % 2 - Forward
-        % 3 - Right
-        continueDirection = randi(3);
-        % Make sure road is going out and not in
-        while intersectionPattern(continueDirection) == '1'
+            for k=1:3-size(intersectionPattern,2)
+                intersectionPattern = ['0' intersectionPattern];
+            end
+            % Determine what direction the scenario will continue from
+            % 1 - Left
+            % 2 - Forward
+            % 3 - Right
             continueDirection = randi(3);
+            % Make sure road is going out and not in
+            while intersectionPattern(continueDirection) == '1'
+                continueDirection = randi(3);
+            end
+            intersectionPattern = [intersectionPattern int2str(continueDirection)];
+
+            bidirChanged = (intersectionPattern(continueDirection) == '0') ~= bidirectional;
+            % Convert to string so that it occupies one column in the matrix
+            intersectionPattern = string(intersectionPattern);
+        else
+            intersectionPattern = 0;
         end
-        intersectionPattern = [intersectionPattern int2str(continueDirection)];
-        
-        bidirChanged = roadType == 2 && ((intersectionPattern(continueDirection) == '0') ~= bidirectional);
-        % Convert to string so that it occupies one column in the matrix
-        intersectionPattern = string(intersectionPattern);
         
         % Pedestrian Pathways - 'pos1_side1_freq1:pos2...'
         if roadType == 4
@@ -161,11 +174,15 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % places all values in a row that will be appended to the main road
         % matrix
         %             1           2        3        4             5         6
-        newRoad = [roadType, roadLength, lanes, bidirectional, midLane, speedLimit, ...
+        newRoad = [roadType, roadLength, lanes, string(bidirectional), midLane, speedLimit, ...
                     ... %   7                8        9             10          11        12 
                     intersectionPattern, curvature1, curvature2, pedPathWays, outlets, showMarkers];
 
         roadMatrix(i,:) = newRoad;
+        
+        % Reset bidirectional if 3-way inter
+        if roadType == 3, bidirectional = str2double(bidirectional(1)); end
+        
     end
     
     %
@@ -174,7 +191,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     actorMatrix = zeros(sizeActors, 10);
     
-    actors = ["Other Car", "Pedestrian"];
+    actors = ["Vehicle", "Pedestrian"];
     
     cars = ["Sedan", "Truck", "Motorcycle"]; 
     
@@ -183,7 +200,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     for i = 1:sizeActors
         
         % sets what type of actor it will be
-        actorType = randi(length(actors));
+        actorType = 2;%randi(length(actors));
         
         % if actor is a vehicle, sets what kind it will be
         carType = randi(length(cars));

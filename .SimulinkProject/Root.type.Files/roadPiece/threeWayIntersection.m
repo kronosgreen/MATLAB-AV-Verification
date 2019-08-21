@@ -2,12 +2,13 @@ function [facing, inPoint, pieces] = threeWayIntersection(drScn, inPoint, facing
 %THREEWAYINTERSECTION Summary of this function goes here
 %   Detailed explanation goes here
 
-disp("Starting 3-Way Intersection");
-
+    disp("Starting 3-Way Intersection");
+    
     % set up variables from struct
-    length = str2double(roadStruct(2)) / 2;
-    lanes = str2double(roadStruct(3));
-    bidirectional = str2double(roadStruct(4));
+    length = str2double(roadStruct(2));
+    lanes = char(roadStruct(3));
+    bidirectional = char(roadStruct(4));
+    midLane = str2double(roadStruct(5));
     speedLimit = roadStruct(6);
     pedPathWays = roadStruct(10);
     outlets = roadStruct(11);
@@ -20,16 +21,25 @@ disp("Starting 3-Way Intersection");
     oldInPoint = inPoint;
     
     dirVec = [cos(facing) sin(facing) 0];
-    roadWidth = 2 * lanes * LANE_WIDTH;
+    
+    roadWidth = str2double(lanes(1)) * LANE_WIDTH;
+    if str2double(bidirectional(1))
+        roadWidth = 2 * roadWidth;
+    end
     
     inPoint = inPoint + (TRANSITION_PIECE_LENGTH * dirVec);
     
-    mainRoad = ["5" length lanes "1" "2" speedLimit "0000" "0" "0" pedPathWays outlets showMarkers];
-    sidelot = ["5" length/3 1 "1" "0" speedLimit "0000" "0" "0" "000" "000" "0"];
+    mainRoad = ["3" length lanes(1) bidirectional(1) midLane speedLimit "0000" "0" "0" pedPathWays outlets showMarkers];
+    outRoad = ["3" length/2 lanes(2) bidirectional(2) midLane speedLimit "0000" "0" "0" pedPathWays outlets showMarkers];
     
-    midPoint = inPoint + (length/2 + 20) * dirVec;
-    midPoint = midPoint + (roadWidth/2 + 1) * [cos(facing-pi/2) sin(facing-pi/2) 0];
-    if bidirectional, sidelotFacing = facing + pi/2; else, sidelotFacing = facing - pi/2; end
+    % Calculate midpoint to place outgoing road
+    midPoint = inPoint + length*dirVec/2;
+    % shift forward if median included
+    if midLane > 1, midPoint = midPoint + 20*dirVec; end
+    % move to end of side 
+    %midPoint = midPoint + (roadWidth/2 + 0.1) * [cos(facing-pi/2) sin(facing-pi/2) 0];
+    % third lane value will point the extra road left if true, right if false
+    if str2double(lanes(3)), outFacing = facing + pi/2; else, outFacing = facing - pi/2; end
     
     corners = [midPoint; inPoint; inPoint + length*dirVec];
     
@@ -43,7 +53,7 @@ disp("Starting 3-Way Intersection");
     end
     
     [facing, inPoint, piece1] = multiLaneRoad(drScn, inPoint, facing, [], mainRoad);
-    [xfacing, xinPoint, piece2] = multiLaneRoad(drScn, midPoint, sidelotFacing, [], sidelot);
+    [xfacing, xinPoint, piece2] = multiLaneRoad(drScn, midPoint, outFacing, [], outRoad);
     
     % Transition the lane width from the previous piece to the current one
     % creating a new middle piece in the shape of a trapezoid.
@@ -63,11 +73,11 @@ disp("Starting 3-Way Intersection");
     rPiece.curvature1 = 0;
     rPiece.curvature2 = 0;
     rPiece.midLane = 0;
-    rPiece.bidirectional = 1;
+    rPiece.bidirectional = str2double(bidirectional(1));
     rPiece.lanes = lanes;
     rPiece.forwardDrivingPaths = piece1.forwardDrivingPaths;
     rPiece.reverseDrivingPaths = piece1.reverseDrivingPaths;
-    rPiece.occupiedLanes = zeros(1,2*lanes);
+    rPiece.occupiedLanes = zeros(1,2*str2double(lanes(1)));
     rPiece.width = roadWidth;
     rPiece.weather = 0;
     rPiece.roadConditions = 0;
