@@ -26,7 +26,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     % 1 = two directions with double solid yellow line
     % 2 = two directions with dashed yellow line
     % currently remains the same for the entire road
-    bidirectional = 2;%randi(3) - 1;
+    bidirectional = randi(3) - 1;
     bidirChanged = 0;
     
     % initialize lanes to 3 if none being set
@@ -41,7 +41,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         end
         % Currently only multilane road is implemented
         % Determines which piece will be placed
-        roadType = 5;%randi(length(pieces));
+        roadType = randi(length(pieces));
         
         % give second option for three way intersection
         if roadType == 3, bidirectional = [char(48+bidirectional), char(47+randi(3))]; end
@@ -200,7 +200,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     for i = 1:sizeActors
         
         % sets what type of actor it will be
-        actorType = 2;%randi(length(actors));
+        actorType = randi(length(actors));
         
         % if actor is a vehicle, sets what kind it will be
         carType = randi(length(cars));
