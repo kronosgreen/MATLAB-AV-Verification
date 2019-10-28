@@ -28,7 +28,7 @@ switch(pieces(posIndex).type)
     case 1
         
         % Part of road crossing where 0 < localPos <= 1
-        localPos = round((size(pieces(posIndex).roadPoints, 1) - 1) * randi(100)/100);
+        localPos = 1 + round((size(pieces(posIndex).roadPoints, 1) - 1) * randi(100)/100);
         
         % Center of road where pedestrian crosses
         midPoint = pieces(posIndex).roadPoints(localPos,:);
