@@ -1,6 +1,6 @@
 # MATLAB-AV-Verification
 
-This project serves as a **Scenario Generation Verification Framework** for the verification of autonomous vehicles (AV), specifically the decision making portion as presented in [1], and is also a part of the Advanced Mobility Institute at Florida Polytechnic's **FLPolyVF** or Florida Poly Verification Framework, which seeks to fully verify autonomous vehicles as demonstrating Level 5 autonomous driving as defined by the SAE [3]. As the field of AV verification expands, it is continuingly seen to be more and more of an almost impossible task, especially without simulation due to its complex nature, and this is where the **FLPolyVF** comes in [2]. It seeks to provide a solution to this problem by creating a robust framework for AV verification that draws inspiration from chip verification, which is an industry that has been verifying complex systems for much longer.
+This project serves as a **Scenario Generation Verification Framework** for the verification of autonomous vehicles (AV), specifically the decision making portion as presented in [the abstract here][1], and is also a part of the Advanced Mobility Institute at Florida Polytechnic's **FLPolyVF** or Florida Poly Verification Framework, which seeks to fully verify autonomous vehicles as demonstrating Level 5 autonomous driving as defined by the SAE through a [model of computation][3]. As the field of AV verification expands, it is continuingly seen to be more and more of an almost [impossible task][2], especially without simulation due to its complex nature, and this is where the **FLPolyVF** comes in. It seeks to provide a solution to this problem by creating a robust framework for AV verification that draws inspiration from chip verification, which is an industry that has been verifying complex systems for much longer.
 
 ## Getting Started
 
@@ -166,5 +166,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 ## References
 
 [1]: C. Medrano-Berumen, M. I. Akbas, Abstract Simulation Scenario Gen-eration  for  Autonomous  Vehicle  Verification,   in:   Proceedings  of  theIEEE SoutheastCon, IEEE.
+
 [2]: M.  I.  Akbas,  A.  Sargolzaei,  A.  J.  Alnaser,  S.  Sahawneh,  S.  Alsweiss,J. Vargas, R. Razdan,  Unsettled technology areas in autonomous vehi-cle test and validation,  Society of Automotive Engineers (SAE) Inter-national Journal of Connected and Automated Vehicles (2019).
+
 [3]: A.  J.  Alnaser,  M.  I.  Akbas,  A.  Sargolzaei,  R.  Razdan,   Autonomousvehicles scenario testing framework and model of computation,  Societyof Automotive Engineers (SAE) International Journal of Connected andAutomated Vehicles (2019).
