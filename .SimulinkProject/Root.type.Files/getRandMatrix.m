@@ -70,7 +70,11 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         elseif roadType == 3
             % [lanes forward/back, lanes going out, direction going out]
             lanes = string([char(48+randi(5)) char(48+randi(5)) char(47+randi(2))]);
-        elseif roadType ~= 4 % Don't change lanes if going into a single crosswalk
+        elseif roadType == 4 % Don't change lanes if going into a single crosswalk
+            if str2double(string(lanes)) > 5 % Check if coming out of intersection
+                lanes = randi(5);
+            end
+        elseif roadType == 1 || roadType == 5
             lanes = randi(5);
         end
         

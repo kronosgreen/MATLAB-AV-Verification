@@ -4,12 +4,12 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     % limits of the road
     
     disp("CREATING EGO VEHICLE");
-    egoStruct =  [1 1 1 0 10 10 10 0 1 0];
+     egoStruct =  [1 1 1 0 10 10 10 0 1 0];
     actors = [];
     
-    [vc, actors, pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, actors, pieces, egoStruct, 1);
+     [vc, actors, pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, actors, pieces, egoStruct, 1);
     
-    trajectory(egoCar,ep(1:size(ep,1)-1,:),egoSpeeds(1:size(egoSpeeds,2)-1));
+     trajectory(egoCar,ep(1:size(ep,1)-1,:),egoSpeeds(1:size(egoSpeeds,2)-1));
 
     %% Create Actors
     
