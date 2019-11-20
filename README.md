@@ -36,6 +36,13 @@ In order to run a randomly generated simulation, you will interface with the *si
 
 Playing around with these simple parameters can generate repeatable random scenarios given the seed (equal to the NUM_SIMULATIONS parameter). For custom scenarios, you have to create your own matrices to define the roads and actors. Within these matrices, each row defines a new road piece or actor, and each column describes a certain trait of said piece or actor, from curvature to speed limit and from vehicle type to moving behavior. The random matrices are created in *getRandMatrix.m*, so, to limit only a single parameter, you can go in here and adjust the line corresponding with that parameter getting its random value.
 
+## Simulink Demo
+
+![Simulink Demo](https://github.com/kronosgreen/MATLAB-AV-Verification/blob/master/images/simulink.png)
+By opening Simulink and selecting the simulink_scenario_demo.slx file from the main project folder, you can see an implementation of the scenario generation with a demo model of a lane follower taken from the automated driving example. The button with "Generate Scenario" must be clicked first to initialize all the variables as well as creating the scenario using parameters hardcoded in the generate_scenario.m file which can be changed there.
+
+## Overview
+
 ### Road Pieces
 
 ![Road Pieces](https://github.com/kronosgreen/MATLAB-AV-Verification/blob/master/images/matlabroad.png)

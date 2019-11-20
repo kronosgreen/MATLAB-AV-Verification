@@ -79,7 +79,7 @@ end
 
 %% Create Scenario
 
-[roadMatrix, actorMatrix] = getRandMatrix(3, 3, 1);
+[roadMatrix, actorMatrix] = getRandMatrix(10, 5, 0);
 
 scenario = drivingScenario();
 scenario.StopTime = inf;
@@ -92,9 +92,9 @@ v_set = pieces(2).speedLimit;  % ACC set speed (m/s)
 
 % Initial condition for the ego car in ISO 8855 coordinates
 v0_ego   = pieces(2).speedLimit;      % Initial speed of the ego car           (m/s)
-x0_ego   = 0;	    % Initial x position of ego car          (m)
-y0_ego   = 0;	    % Initial y position of ego car          (m)
-yaw0_ego = 0;       % Initial yaw angle of ego car           (rad)
+x0_ego   = pieces(2).forwardDrivingPaths(1,1);	    % Initial x position of ego car          (m)
+y0_ego   = pieces(2).forwardDrivingPaths(1,2);	    % Initial y position of ego car          (m)
+yaw0_ego = 1.57;       % Initial yaw angle of ego car           (rad)
 
 % Convert ISO 8855 to SAE J670E coordinates
 y0_ego = -y0_ego;
