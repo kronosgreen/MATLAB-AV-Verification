@@ -312,7 +312,7 @@ switch(pathType)
     
     case 3
         
-        disp("Platooning")
+        disp("Platooning");
         
         followDist = ac.Length + 3;
         
@@ -324,6 +324,23 @@ switch(pathType)
         
         newPath = [newPoint; prevPath];
         newSpeeds = [prevSpeeds(1) prevSpeeds];
+        
+    %
+    % Cut Off Ego Vehicle
+    %
+    % - Track ego vehicle's position assuming its path is known 
+    %   and it is following the speed limit and construct path 
+    %   that passes ego vehicle and enters its lane
+        
+    case 4
+        
+        disp("Cut Off Ego Vehicle");
+        
+        %
+        %
+        %   CODE GOES HERE
+        %
+        %
         
 end % end switch
 
