@@ -79,7 +79,7 @@ end
 
 %% Create Scenario
 
-[roadMatrix, actorMatrix] = getRandMatrix(10, 5, 0);
+[roadMatrix, actorMatrix] = getRandMatrix(1, 0, 0);
 
 scenario = drivingScenario();
 scenario.StopTime = inf;

@@ -39,7 +39,8 @@ Playing around with these simple parameters can generate repeatable random scena
 ## Simulink Demo
 
 ![Simulink Demo](https://github.com/kronosgreen/MATLAB-AV-Verification/blob/master/images/simulink.png)
-By opening Simulink and selecting the simulink_scenario_demo.slx file from the main project folder, you can see an implementation of the scenario generation with a demo model of a lane follower taken from the automated driving example. The button with "Generate Scenario" must be clicked first to initialize all the variables as well as creating the scenario using parameters hardcoded in the generate_scenario.m file which can be changed there.
+
+By opening Simulink and selecting the simulink_scenario_demo.slx file from the main project folder, you can see an implementation of the scenario generation with a demo model of a lane follower taken from the automated driving example. The button with "Generate Scenario" must be clicked first to initialize all the variables as well as creating the scenario using parameters hardcoded in the generate_scenario.m file which can be changed in the file editor (1 road and no actors are used for now to avoid problems w/ the lane following demo as it does not find the lanes of the next piece). In the Simulation tab of the top pane of the Simulink Editor, there is a button called Bird's Eye Scope; if you click on that and then 'Find Signals' in the window that opens up, you will be able to get a top-down view of the scenario. You can also click on the 'World Coordinates' button on this window to get a separate view. After that, you just need to click the Run button to see it in action.
 
 ## Overview
 
