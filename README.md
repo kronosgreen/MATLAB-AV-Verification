@@ -175,7 +175,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 <a name="sgframework">[1]</a>: [C. Medrano-Berumen, M. I. Akbas, Abstract Simulation Scenario Generation for Autonomous Vehicle  Verification, in: Proceedings of the IEEE SoutheastCon, April, 2019.](https://www.researchgate.net/publication/335617277_Abstract_Simulation_Scenario_Generation_for_Autonomous_Vehicle_Verification)
 
-<a name="sgframework">[2]</a>: [C. Medrano-Berumen, M. I. Akbas, Scenario Generation for Validating Artificial Intelligence Based Autonomous Vehicles, in: ACIIDS Special Session on Privacy, Security and Trust in Artificial Intelligence (PSTrustAI), March, 2020.]
+<a name="sgframework">[2]</a>: [C. Medrano-Berumen, M. I. Akbas, Scenario Generation for Validating Artificial Intelligence Based Autonomous Vehicles, in: ACIIDS Special Session on Privacy, Security and Trust in Artificial Intelligence (PSTrustAI), March, 2020.](https://)
 
 <a name="verreview">[3]</a>: [M. I. Akbas, A. Sargolzaei, A. J. Alnaser, S. Sahawneh, S. Alsweiss,J. Vargas, R. Razdan,  Unsettled technology areas in autonomous vehicle test and validation, Society of Automotive Engineers (SAE) International Journal of Connected and Automated Vehicles, 2019.](https://saemobilus.sae.org/content/EPR2019001/)
 
