@@ -169,7 +169,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 ## Acknowledgments
 
 * Mustafa Ilhan Akbaş - Advisor, and so a large part of the development process - [Website](https://sites.google.com/site/miakbas/)
-* Rahul Razdan - Leads Florida Poly's AMI - [AMI Website](http://www.flpolyami.com/)
+* Rahul Razdan - Leads Advanced Mobility Institute AMI - [AMI Website](http://www.flpolyami.com/)
 
 ## References
 
