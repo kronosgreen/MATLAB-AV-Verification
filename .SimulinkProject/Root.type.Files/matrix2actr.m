@@ -40,6 +40,8 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                     continue;
                 end
                 
+                %disp(newPath);
+                %disp(newSpeeds);
                 trajectory(ac, newPath, newSpeeds);
                 
             case 2
