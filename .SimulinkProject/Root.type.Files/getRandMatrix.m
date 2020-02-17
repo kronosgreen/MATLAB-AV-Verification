@@ -199,7 +199,7 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
     
     cars = ["Sedan", "Truck", "Motorcycle"]; 
     
-    paths = ["Normal", "Off Lane", "Platooning", "Cut Off"];
+    paths = ["Normal", "Off Lane", "Platooning", "Cut Off", "Stop At Point", "Follow"];
     
     for i = 1:sizeActors
         
@@ -235,8 +235,11 @@ function [roadMatrix, actorMatrix] = getRandMatrix(sizeRoad, sizeActors, rngNum)
         % Position vehicle will cut off ego
         cutOffPoint = randi(100) / 100;
         
+        % Position vehicle will stop moving
+        stopPoint = randi(100) / 100;
+        
         % joins all of the actor information into a new matrix row
-        newActor = [actorType carType pathType movSpeed dimensions startLoc forward offset cutOffPoint];
+        newActor = [actorType carType pathType movSpeed dimensions startLoc forward offset cutOffPoint, stopPoint];
         
 
         

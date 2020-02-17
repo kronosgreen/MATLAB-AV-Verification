@@ -1,0 +1,21 @@
+{
+    "roadMatrix" : [
+        {
+            "roadType" : "2",
+            "length" : "50",
+            "lanes" : "1212",
+            "bidirectional" : "1",
+            "midLane" : "1",
+            "speedLimit" : "27",
+            "intersectionPatter" : "0002",
+            "curvature1" : "0.0",
+            "curvature2" : "0.0",
+            "pedestrianPathway" : "000:00",
+            "outlets" : "000",
+            "showMarkers" : "1"
+        }
+    ],
+    "actorMatrix" : [
+        
+    ]
+}

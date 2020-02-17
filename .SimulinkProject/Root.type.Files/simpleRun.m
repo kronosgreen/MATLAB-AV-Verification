@@ -9,7 +9,7 @@ global fid;
 
 % Set Simulation Run Parameters
 
-% Num of simulations to run in parallel
+% Num of s/imulations to run in parallel
 NUM_SIMULATIONS = 10;
 % Num of road pieces to place in scenario
 LEN_ROAD = 5; 

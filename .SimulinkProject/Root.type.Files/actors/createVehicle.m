@@ -10,6 +10,7 @@ typeVehicle = actorStruct(2);
 pathType = actorStruct(3);
 speed = actorStruct(4);
 dimensions = actorStruct(5:7);
+startLocation = actorStruct(8);
 forward = actorStruct(9);
 offset = actorStruct(10);
 
@@ -394,6 +395,89 @@ switch(pathType)
         newSpeeds = vehicleSpeeds;
             
            
+    case 5
+        disp("Stop at point");
+        pathOrder = 1;
+        vehicleSpeeds = [];
+        
+        %disp(size(pieces(2).roadPoints, 1));
+        %disp(actorStruct(12));
+        stopPoint = size(pieces(2).roadPoints, 1) * actorStruct(12);
+        startPoint = size(pieces(2).roadPoints, 1) * startLocation;
+        disp(startPoint);
+        if forward || ~pieces(2).bidirectional
+            for a = posIndex:length(pieces)
+                if pieces(a).type ~= 0
+                    availableLane = -1;
+                    for b = 1 + (size(pieces(a).reverseDrivingPaths, 2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1):...
+                            (size(pieces(a).reverseDrivingPaths, 2) ~= 1 * size(pieces(a).reverseDrivingPaths, 1) + size(pieces(a).reverseDrivingPaths, 1))
+                        
+                        if pieces(a).occupiedLanes(b) ~= pathOrder
+                            pieces(a).occupiedLanes(b) = pathOrder;
+                            availableLane = b - (size(pieces(a).reverseDrivingPaths, 2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1);
+                            break;
+                        end
+                    end
+                    
+                    start = 1;
+                    if a == posIndex, start = randi(size(pieces(a).forwardDrivingPaths, 2) / 3) * 3 - 2; end
+                    
+                    if availableLane ~= -1
+                        for c = start:3:size(pieces(a).forwardDrivingPaths, 2)
+                            nextPoint = pieces(a).forwardDrivingPaths(availableLane, c:c+2);
+                            newPath = vertcat(newPath, nextPoint);
+                            vehicleSpeeds = [vehicleSpeeds pieces(a).speedLimit + speed];
+                        end
+                    end
+                end
+                pathOrder = pathOrder + 1;
+            end
+            
+        else
+            
+        end
+        
+        %disp(vehicleSpeeds);
+        vehicleProgress = 1;
+        prevSpeed = vehicleSpeeds(1);
+%         while vehicleProgress <= stopPoint
+%             vehicleSpeeds(vehicleProgress) = round(prevSpeed * .5);
+%             prevSpeed = vehicleSpeeds(vehicleProgress);
+%             vehicleProgress = vehicleProgress + 1;
+%         end
+        
+        disp(newPath)
+        disp(startPoint)
+        vehicleLocation = 1;
+        while vehicleLocation <= startPoint
+            newPath(vehicleLocation, 2) = newPath(vehicleLocation, 2);
+            vehicleLocation = vehicleLocation + 1;
+        end
+        
+        while vehicleLocation <= size(newPath, 1)
+            newPath(vehicleLocation, 2) = newPath(startPoint, 2);
+            vehicleLocation = vehicleLocation + 1;
+        end
+        disp(newPath)
+        
+        
+%         while vehicleProgress <= size(newPath, 1)
+%             vehicleSpeeds(vehicleProgress) = 0.00001;
+%             vehicleProgress = vehicleProgress + 1;
+%         end
+        disp(vehicleSpeeds);
+        newSpeeds = vehicleSpeeds;
+        
+    case 6
+        disp("Follow Ego Vehicle");
+        
+        newPath = actors(length(actors)).path;
+        i = 1;
+        while i < size(newPath)
+            vehicleSpeeds(i) = pieces(1).speedLimit + speed;
+            i = i + 1;
+        end
+        
         
 end % end switch
 
@@ -403,6 +487,7 @@ end % end switch
 %disp(newPath);
 %disp(newSpeeds);
 if ~isempty(newPath)
+    disp(newPath);
     newPath = [newPath; 1000 1000 1000];
     newSpeeds = [newSpeeds 10];
     vehicleCreated = 1;

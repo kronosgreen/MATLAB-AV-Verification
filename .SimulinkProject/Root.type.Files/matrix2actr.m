@@ -4,7 +4,9 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     % limits of the road
     
     disp("CREATING EGO VEHICLE");
-     egoStruct =  [1 1 1 0 10 10 10 0 1 0];
+     %egoStruct =  [1 1 1 0 10 10 10 0 1 0];
+     %disp(actorMatrix(1, :));
+     egoStruct = actorMatrix(1, :);
     actors = [];
     
      [vc, actors, pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, actors, pieces, egoStruct, 1);
@@ -17,7 +19,7 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     % actors = ["Other Car", "Tree", "Building", "Stop Sign"];
     % cars = ["Sedan", "Truck", "Motorcycle"];
     
-    for i = 1:size(actorMatrix,1)
+    for i = 2:size(actorMatrix,1)
         
         % places actor somewhere along the road at a road piece and not a
         % road transition piece (odd numbers)
