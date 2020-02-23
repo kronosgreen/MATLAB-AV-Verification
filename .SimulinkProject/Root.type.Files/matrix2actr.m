@@ -10,7 +10,8 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
     actors = [];
     
      [vc, actors, pieces, egoCar, ep, egoSpeeds] = createVehicle(drScn, actors, pieces, egoStruct, 1);
-    
+        
+     disp(ep(1:size(ep,1)-1,:));
      trajectory(egoCar,ep(1:size(ep,1)-1,:),egoSpeeds(1:size(egoSpeeds,2)-1));
 
     %% Create Actors
@@ -42,7 +43,7 @@ function [actors, egoCar] = matrix2actr(drScn, actorMatrix, pieces)
                     continue;
                 end
                 
-                %disp(newPath);
+                disp(newPath);
                 %disp(newSpeeds);
                 trajectory(ac, newPath, newSpeeds);
                 

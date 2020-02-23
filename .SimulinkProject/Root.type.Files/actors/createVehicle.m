@@ -170,8 +170,8 @@ switch(pathType)
             end % end road for loop
         
         end % end if forward/reverse
-       
-
+        disp(newPath);
+        
     %
     % Off-lane Path
     %
@@ -437,35 +437,9 @@ switch(pathType)
             
         end
         
-        %disp(vehicleSpeeds);
-        vehicleProgress = 1;
-        prevSpeed = vehicleSpeeds(1);
-%         while vehicleProgress <= stopPoint
-%             vehicleSpeeds(vehicleProgress) = round(prevSpeed * .5);
-%             prevSpeed = vehicleSpeeds(vehicleProgress);
-%             vehicleProgress = vehicleProgress + 1;
-%         end
-        
-        disp(newPath)
-        disp(startPoint)
-        vehicleLocation = 1;
-        while vehicleLocation <= startPoint
-            newPath(vehicleLocation, 2) = newPath(vehicleLocation, 2);
-            vehicleLocation = vehicleLocation + 1;
-        end
-        
-        while vehicleLocation <= size(newPath, 1)
-            newPath(vehicleLocation, 2) = newPath(startPoint, 2);
-            vehicleLocation = vehicleLocation + 1;
-        end
-        disp(newPath)
         
         
-%         while vehicleProgress <= size(newPath, 1)
-%             vehicleSpeeds(vehicleProgress) = 0.00001;
-%             vehicleProgress = vehicleProgress + 1;
-%         end
-        disp(vehicleSpeeds);
+       
         newSpeeds = vehicleSpeeds;
         
     case 6
@@ -487,7 +461,7 @@ end % end switch
 %disp(newPath);
 %disp(newSpeeds);
 if ~isempty(newPath)
-    disp(newPath);
+    %disp(newPath);
     newPath = [newPath; 1000 1000 1000];
     newSpeeds = [newSpeeds 10];
     vehicleCreated = 1;
