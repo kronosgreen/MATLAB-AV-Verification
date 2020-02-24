@@ -26,7 +26,6 @@ switch(pieces(posIndex).type)
  
     % Multilane Road
     case 1
-        
         % Part of road crossing where 0 < localPos <= 1
         localPos = 1 + round((size(pieces(posIndex).roadPoints, 1) - 1) * randi(100)/100);
         
@@ -35,7 +34,7 @@ switch(pieces(posIndex).type)
         nextPoint = pieces(posIndex).roadPoints(localPos+1,:);
         
         facingDir = mod( pi/2 - atan2( nextPoint(2)-midPoint(2), nextPoint(1)-midPoint(1) ), 2*pi );
-
+        facingDir = -180;
         % Get point on the right side of the road at the middle
         startPoint = midPoint + pieces(posIndex).width/2 * [cos(facingDir - pi/2) sin(facingDir - pi/2) 0];
     

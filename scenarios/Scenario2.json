@@ -1,0 +1,48 @@
+{
+    "roadMatrix" : [
+        {
+            "roadType" : "2",
+            "length" : "75",
+            "lanes" : "2224",
+            "bidirectional" : "0",
+            "midLane" : "0",
+            "speedLimit" : "27",
+            "intersectionPattern" : "0002",
+            "curvature1" : "0.0",
+            "curvature2" : "0.0",
+            "pedestrianPathway" : "000:00",
+            "outlets" : "000",
+            "showMarkers" : "1"
+        }
+    ],
+    "actorMatrix" : [
+        {
+            "actorType" : "1",
+            "vehicleType" : "1",
+            "pathType" : "1",
+            "moveSpeed" : "0",
+            "dimensionsX" : "10",
+            "dimensionsY" : "10",
+            "dimensionsZ" : "10",
+            "startLocation" : "0", 
+            "forward" : "1",
+            "offset" : "0",
+            "cutOffPoint" : "0",
+            "stopPoint" : "0"
+        },
+        {
+            "actorType" : "1",
+            "vehicleType" : "2",
+            "pathType" : "1",
+            "moveSpeed" : "-27",
+            "dimensionsX" : "10",
+            "dimensionsY" : "20",
+            "dimensionsZ" : "10",
+            "startLocation" : "0.20",
+            "forward" : "0",
+            "offset" : "0",
+            "cutOffPoint" : "0",
+            "stopPoint" : "0"
+        }
+    ]
+}

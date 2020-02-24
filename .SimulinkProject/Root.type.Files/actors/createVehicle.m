@@ -10,6 +10,7 @@ typeVehicle = actorStruct(2);
 pathType = actorStruct(3);
 speed = actorStruct(4);
 dimensions = actorStruct(5:7);
+startLocation = actorStruct(8);
 forward = actorStruct(9);
 offset = actorStruct(10);
 
@@ -169,8 +170,8 @@ switch(pathType)
             end % end road for loop
         
         end % end if forward/reverse
-       
-
+        disp(newPath);
+        
     %
     % Off-lane Path
     %
@@ -332,21 +333,135 @@ switch(pathType)
     %   and it is following the speed limit and construct path 
     %   that passes ego vehicle and enters its lane
         
-    case 4
-        
+    case 4        
         disp("Cut Off Ego Vehicle");
+        pathOrder = 1;
         
-        %
-        %
-        %   CODE GOES HERE
-        %
-        %
+        egoPath = actors(1).path;
+        %vehicleSpeeds = actors(1).speeds;
+        %vehicleSpeeds(end) = [];
+        vehicleSpeeds = [];
+        cutOffPoint = size(egoPath,1) * actorStruct(11);
+        
+        %disp(vehicleSpeeds);
+        vehicleProgress = 1;
+        %disp(egoPath);
+        
+        if forward || ~pieces(2).bidirectional
+            for a = posIndex:length(pieces)
+                if pieces(a).type ~= 0
+                    availableLane = -1;
+                    for b = 1 + (size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1):...
+                            (size(pieces(a).reverseDrivingPaths,2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1) + size(pieces(a).forwardDrivingPaths,1)
+                        if pieces(a).occupiedLanes(b) ~= pathOrder
+                           pieces(a).occupiedLanes(b) = pathOrder;
+                           availableLane = b - (size(pieces(a).reverseDrivingPaths, 2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1);
+                           break
+                        end
+                    end
+
+                    start = 1;
+                    if a == posIndex, start = randi(size(pieces(a).forwardDrivingPaths, 2) / 3) * 3 - 2; end
+
+                    if availableLane ~= -1
+                        for c = start:3:size(pieces(a).forwardDrivingPaths,2)
+                            nextPoint = pieces(a).forwardDrivingPaths(availableLane, c:c+2);
+                            newPath = vertcat(newPath, nextPoint);
+                            vehicleSpeeds = [vehicleSpeeds pieces(a).speedLimit+speed];
+                        end
+                    end
+                end
+
+                pathOrder = pathOrder + 1;
+            end
+        else 
+            
+        end
+        %disp(vehicleSpeeds);
+        while vehicleProgress <= cutOffPoint
+           
+           vehicleSpeeds(vehicleProgress) = round(vehicleSpeeds(vehicleProgress) + (2 * vehicleProgress));
+           vehicleProgress = vehicleProgress + 1;
+           
+        end
+        
+        egoPath = actors(1).path;
+        
+        while vehicleProgress <= size(newPath, 1)
+            newPath(vehicleProgress,1) = egoPath(1,1);
+            vehicleProgress = vehicleProgress + 1;
+        end
+        
+        newSpeeds = vehicleSpeeds;
+            
+           
+    case 5
+        disp("Stop at point");
+        pathOrder = 1;
+        vehicleSpeeds = [];
+        
+        %disp(size(pieces(2).roadPoints, 1));
+        %disp(actorStruct(12));
+        stopPoint = size(pieces(2).roadPoints, 1) * actorStruct(12);
+        startPoint = size(pieces(2).roadPoints, 1) * startLocation;
+        disp(startPoint);
+        if forward || ~pieces(2).bidirectional
+            for a = posIndex:length(pieces)
+                if pieces(a).type ~= 0
+                    availableLane = -1;
+                    for b = 1 + (size(pieces(a).reverseDrivingPaths, 2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1):...
+                            (size(pieces(a).reverseDrivingPaths, 2) ~= 1 * size(pieces(a).reverseDrivingPaths, 1) + size(pieces(a).reverseDrivingPaths, 1))
+                        
+                        if pieces(a).occupiedLanes(b) ~= pathOrder
+                            pieces(a).occupiedLanes(b) = pathOrder;
+                            availableLane = b - (size(pieces(a).reverseDrivingPaths, 2) ~= 1) * size(pieces(a).reverseDrivingPaths, 1);
+                            break;
+                        end
+                    end
+                    
+                    start = 1;
+                    if a == posIndex, start = randi(size(pieces(a).forwardDrivingPaths, 2) / 3) * 3 - 2; end
+                    
+                    if availableLane ~= -1
+                        for c = start:3:size(pieces(a).forwardDrivingPaths, 2)
+                            nextPoint = pieces(a).forwardDrivingPaths(availableLane, c:c+2);
+                            newPath = vertcat(newPath, nextPoint);
+                            vehicleSpeeds = [vehicleSpeeds pieces(a).speedLimit + speed];
+                        end
+                    end
+                end
+                pathOrder = pathOrder + 1;
+            end
+            
+        else
+            
+        end
+        
+        
+        
+       
+        newSpeeds = vehicleSpeeds;
+        
+    case 6
+        disp("Follow Ego Vehicle");
+        
+        newPath = actors(length(actors)).path;
+        i = 1;
+        while i < size(newPath)
+            vehicleSpeeds(i) = pieces(1).speedLimit + speed;
+            i = i + 1;
+        end
+        
         
 end % end switch
 
 % Add far off point to continue simulation after vehicle path
 % done
+
+%disp(newPath);
+%disp(newSpeeds);
 if ~isempty(newPath)
+    %disp(newPath);
     newPath = [newPath; 1000 1000 1000];
     newSpeeds = [newSpeeds 10];
     vehicleCreated = 1;
