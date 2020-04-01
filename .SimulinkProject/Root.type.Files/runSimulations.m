@@ -33,7 +33,9 @@ function [result] = runSimulations(numSimulations, lenRoad, numActors)
     %aMatrix = actorMatrix;
     
     rMatrix = [2 50 1212 1 1 27 0202 0.4 0.0 "000:00" "000" 1];
-    aMatrix = [1 1 5 0 10 10 10 0.2 1 0 0 0.5];
+    %aMatrix = [1 1 5 0 10 10 10 0.2 1 0 0 0.5];
+    %aMatrix = ["1", "1", "5", "0", "10", "10", "10", "0.2", "1", "0", "0", "0.5"];
+    aMatrix = [1, 1, 5, 0, 10, 10, 10, 0.2, 1, 0, 0, 0.5];
     
     matrix2scen(rMatrix, aMatrix);
 
